@@ -1,0 +1,7 @@
+.pydevproject
+.project
+__pycache__
+/.pytest_cache/
+.settings
+.venv
+docs/api

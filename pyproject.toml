@@ -1,0 +1,88 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cwl2puml"
+dynamic = ["version"]
+description = 'CWL Worflows processor to generate PlantUML diagrams'
+
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Fabrice Brito", email = "info@terradue.com" },
+  { name = "Simone Tripodi", email = "info@terradue.com"}
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "cwl_loader==0.1.0",
+  "cwl-utils>=0.38",
+  "click>=8.2.1",
+  "Jinja2>=3.1.6",
+  "loguru"
+]
+
+[project.scripts]
+cwl2puml = "cwl2puml:main"
+
+[project.urls]
+Documentation = "https://github.com/eoap/cwl2puml#readme"
+Issues = "https://github.com/eoap/cwl2puml/issues"
+Source = "https://github.com/eoap/cwl2puml"
+
+[tool.hatch.version]
+path = "src/cwl2puml/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/cwl2puml tests}"
+
+[tool.coverage.run]
+source_pkgs = ["cwl2puml", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/cwl2puml/__about__.py",
+]
+
+[tool.coverage.paths]
+cwl2puml = ["src/cwl2puml", "*/cwl2puml/src/cwl2puml"]
+tests = ["tests", "*/cwl2puml/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.hatch.envs.test]
+skip-install = false
+
+dependencies = [
+  "cwl-utils>=0.38",
+  "nose2",
+]
+
+[tool.hatch.envs.test.scripts]
+test = "hatch run nose2"
+testv = "hatch run nose2 --verbose"
+cov = ["coverage run --source=src/cwl2puml -m nose2", "coverage report"]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
