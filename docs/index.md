@@ -8,6 +8,12 @@ This project aims to deliver a simple yet powerful CLI tool to ingest [CWL Workf
 pip install cwl2puml
 ```
 
+or, for early adopters:
+
+```
+pip install --no-cache-dir git+https://github.com/Terradue/cwl2puml@main
+```
+
 ## CLI execution
 
 ```
