@@ -4,11 +4,11 @@ This project aims to deliver a simple yet powerful CLI tool to ingest [CWL Workf
 
 ## Contribute
 
-Submit a [Github issue](https://github.com/Terradue/cwl_loader/issues) if you have comments or suggestions.
+Submit a [Github issue](https://github.com/Terradue/cwl2puml/issues) if you have comments or suggestions.
 
 ## Documentation
 
-See the documentation at https://Terradue.github.io/cwl_loader/
+See the documentation at https://Terradue.github.io/cwl2puml/
 
 ## License
 
