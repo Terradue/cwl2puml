@@ -23,7 +23,6 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter legacy-cgi pdocs pillow plantuml
-      - run: pip install --no-cache-dir git+https://github.com/Terradue/cwl-loader@main
       - run: pip install .
       - run: pdocs as_markdown --output_dir ./docs/api/latest --exclude_source --overwrite cwl2puml
       - run: mkdocs gh-deploy --force
