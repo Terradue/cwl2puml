@@ -27,7 +27,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "cwl-loader==0.1.0",
+  "cwl-loader>=0.2.0",
   "cwl-utils>=0.38",
   "click>=8.2.1",
   "Jinja2>=3.1.6",
