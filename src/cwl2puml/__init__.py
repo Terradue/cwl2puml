@@ -133,13 +133,13 @@ def _to_puml_name(identifier: str) -> str:
 
 def _type_to_string(typ: Any) -> str:
     if get_origin(typ) is Union:
-        return " or ".join([type_to_string(inner_type) for inner_type in get_args(typ)])
+        return " or ".join([_type_to_string(inner_type) for inner_type in get_args(typ)])
 
     if isinstance(typ, list):
-        return f"[ {', '.join([type_to_string(t) for t in typ])} ]"
+        return f"[ {', '.join([_type_to_string(t) for t in typ])} ]"
 
     if hasattr(typ, "items"):
-        return f"{type_to_string(typ.items)}[]"
+        return f"{_type_to_string(typ.items)}[]"
 
     if isinstance(typ, str):
         return typ
@@ -166,8 +166,8 @@ def to_puml(
     env.filters['to_puml_name'] = _to_puml_name
     env.filters['type_to_string'] = _type_to_string
 
-    sring_template = diagram_type.value
-    template = env.from_string(sring_template)
+    string_template = diagram_type.value
+    template = env.from_string(string_template)
 
     output_stream.write(template.render(workflows=cwl_document))
 
