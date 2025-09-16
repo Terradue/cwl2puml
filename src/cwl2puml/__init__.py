@@ -120,9 +120,13 @@ class "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} extends {{ workflo
 {% endfor %}
 
 {% for workflow in workflows %}
+    {% if workflow.steps %}
+    package "Steps" {
     {% for step in workflow.steps %}
 {{ workflow.id | to_puml_name }} --> {{ step.run[1:] | to_puml_name }}
     {% endfor %}
+    }
+    {% endif %}
 
     {% for input in workflow.inputs %}
         {% if input.doc or input.label %}
