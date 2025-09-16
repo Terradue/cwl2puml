@@ -24,7 +24,9 @@ from loguru import logger
 from pathlib import Path
 from typing import (
     Any,
-    Union
+    Union,
+    get_args,
+    get_origin
 )
 import click
 import enum
