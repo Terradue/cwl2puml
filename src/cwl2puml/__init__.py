@@ -98,6 +98,7 @@ class "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} extends {{ workflo
     {% endif %}
 }
 
+    {% if workflow.requirements %}
     package "Requirements" {
     {% for requirement in workflow.requirements %}
         {% if requirement.class_ %}
@@ -105,7 +106,9 @@ class "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} extends {{ workflo
         {% endif %}
     {% endfor %}
     }
+    {% endif %}
 
+    {% if workflow.hints %}
     package "Hints" {
     {% for hint in workflow.hints %}
         {% if hint.class_ %}
@@ -113,6 +116,7 @@ class "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} extends {{ workflo
         {% endif %}
     {% endfor %}
     }
+    {% endif %}
 {% endfor %}
 
 {% for workflow in workflows %}
