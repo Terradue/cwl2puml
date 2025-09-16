@@ -1,0 +1,62 @@
+@startuml
+
+{% for workflow in workflows %}
+class "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} extends {{ workflow.class_ }} {
+    __ Inputs __
+    {% for input in workflow.inputs %}
+    + {{ input.id }}: {{ input.type_ | type_to_string }}{% if input.default %} = {{ input.default }}{% endif %}
+    {% endfor %}
+
+    __ Outputs __
+    {% for output in workflow.outputs %}
+    + {{ output.id }}: {{ output.type_ | type_to_string }}
+    {% endfor %}
+
+    {% if workflow.steps is defined %}
+    __ Steps __
+        {% for step in workflow.steps %}
+    - {{ step.id }}: {{ step.run[1:] | to_puml_name }}
+        {% endfor %}
+    {% endif %}
+}
+
+    {% if workflow.requirements %}
+    package "Requirements" {
+    {% for requirement in workflow.requirements %}
+        {% if requirement.class_ %}
+{{ workflow.id | to_puml_name }} --> {{ requirement.class_ }}
+        {% endif %}
+    {% endfor %}
+    }
+    {% endif %}
+
+    {% if workflow.hints %}
+    package "Hints" {
+    {% for hint in workflow.hints %}
+        {% if hint.class_ %}
+{{ workflow.id | to_puml_name }} --> {{ hint.class_ }}
+        {% endif %}
+    {% endfor %}
+    }
+    {% endif %}
+{% endfor %}
+
+{% for workflow in workflows %}
+    {% if workflow.steps %}
+    package "Steps" {
+    {% for step in workflow.steps %}
+{{ workflow.id | to_puml_name }} --> {{ step.run[1:] | to_puml_name }}
+    {% endfor %}
+    }
+    {% endif %}
+
+    {% for input in workflow.inputs %}
+        {% if input.doc or input.label %}
+note left of {{ workflow.id | to_puml_name }}::{{ input.id }}
+    {% if input.doc %}{{ input.doc }}{% else %}{{ input.label }}{% endif %}
+end note
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+
+@enduml

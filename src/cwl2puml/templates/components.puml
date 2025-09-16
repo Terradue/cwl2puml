@@ -1,0 +1,43 @@
+@startuml
+
+skinparam linetype ortho
+
+{% for workflow in workflows %}
+node "{{ workflow.class_ }} '{{ workflow.id }}'" {
+    component "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
+    {% for input in workflow.inputs %}
+        portin "{{ input.id }}" as {{ workflow.id | to_puml_name }}_{{ input.id | to_puml_name }}
+    {% endfor %}
+    {% for output in workflow.outputs %}
+        portout "{{ output.id }}" as {{ workflow.id | to_puml_name }}_{{ output.id | to_puml_name }}
+    {% endfor %}
+    }
+
+{% for step in workflow.steps %}
+    component "{{ step.id }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }} {
+    {% for input in step.in_ %}
+        portin "{{ input.id }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
+        {{ workflow.id | to_puml_name }}_{{ input.source | replace('/', '_') | to_puml_name }} .down.> {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
+    {% endfor %}
+
+    {% for output in step.out %}
+        portout "{{ output }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ output | to_puml_name }}
+    {% endfor %}
+    }
+{% endfor %}
+}
+{% endfor %}
+
+{% for workflow in workflows %}
+    {% for output in workflow.outputs %}
+        {% for outputSource in output.outputSource %}
+{{ workflow.id | to_puml_name }}_{{ outputSource | replace('/', '_') | to_puml_name }} .up.> {{ workflow.id | to_puml_name }}_{{ output.id | to_puml_name }}
+        {% endfor %}
+    {% endfor %}
+
+    {% for step in workflow.steps %}
+{{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }} .right.> {{ step.run[1:] | to_puml_name }}
+    {% endfor %}
+{% endfor %}
+
+@enduml

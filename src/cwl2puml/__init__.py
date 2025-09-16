@@ -18,8 +18,15 @@ from cwl_loader import (
 )
 from cwl_utils.parser import Process
 from datetime import datetime
+from enum import (
+    auto,
+    Enum
+)
 from io import TextIOBase
-from jinja2 import Environment
+from jinja2 import (
+    Environment,
+    PackageLoader
+)
 from loguru import logger
 from pathlib import Path
 from typing import (
@@ -29,122 +36,16 @@ from typing import (
     get_origin
 )
 import click
-import enum
-import sys
 import time
 
-_COMPONENTS_TEMPLATE = """@startuml
-skinparam linetype ortho
-
-{% for workflow in workflows %}
-node "{{ workflow.class_ }} '{{ workflow.id }}'" {
-    component "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
-    {% for input in workflow.inputs %}
-        portin "{{ input.id }}" as {{ workflow.id | to_puml_name }}_{{ input.id | to_puml_name }}
-    {% endfor %}
-    {% for output in workflow.outputs %}
-        portout "{{ output.id }}" as {{ workflow.id | to_puml_name }}_{{ output.id | to_puml_name }}
-    {% endfor %}
-    }
-
-{% for step in workflow.steps %}
-    component "{{ step.id }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }} {
-    {% for input in step.in_ %}
-        portin "{{ input.id }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
-        {{ workflow.id | to_puml_name }}_{{ input.source | replace('/', '_') | to_puml_name }} .down.> {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
-    {% endfor %}
-
-    {% for output in step.out %}
-        portout "{{ output }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ output | to_puml_name }}
-    {% endfor %}
-    }
-{% endfor %}
-}
-{% endfor %}
-
-{% for workflow in workflows %}
-    {% for output in workflow.outputs %}
-        {% for outputSource in output.outputSource %}
-{{ workflow.id | to_puml_name }}_{{ outputSource | replace('/', '_') | to_puml_name }} .up.> {{ workflow.id | to_puml_name }}_{{ output.id | to_puml_name }}
-        {% endfor %}
-    {% endfor %}
-
-    {% for step in workflow.steps %}
-{{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }} .right.> {{ step.run[1:] | to_puml_name }}
-    {% endfor %}
-{% endfor %}
-@enduml
-"""
-
-_CLASS_TEMPLATE = '''@startuml
-
-{% for workflow in workflows %}
-class "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} extends {{ workflow.class_ }} {
-    __ Inputs __
-    {% for input in workflow.inputs %}
-    + {{ input.id }}: {{ input.type_ | type_to_string }}{% if input.default %} = {{ input.default }}{% endif %}
-    {% endfor %}
-
-    __ Outputs __
-    {% for output in workflow.outputs %}
-    + {{ output.id }}: {{ output.type_ | type_to_string }}
-    {% endfor %}
-
-    {% if workflow.steps is defined %}
-    __ Steps __
-        {% for step in workflow.steps %}
-    - {{ step.id }}: {{ step.run[1:] | to_puml_name }}
-        {% endfor %}
-    {% endif %}
-}
-
-    {% if workflow.requirements %}
-    package "Requirements" {
-    {% for requirement in workflow.requirements %}
-        {% if requirement.class_ %}
-{{ workflow.id | to_puml_name }} --> {{ requirement.class_ }}
-        {% endif %}
-    {% endfor %}
-    }
-    {% endif %}
-
-    {% if workflow.hints %}
-    package "Hints" {
-    {% for hint in workflow.hints %}
-        {% if hint.class_ %}
-{{ workflow.id | to_puml_name }} --> {{ hint.class_ }}
-        {% endif %}
-    {% endfor %}
-    }
-    {% endif %}
-{% endfor %}
-
-{% for workflow in workflows %}
-    {% if workflow.steps %}
-    package "Steps" {
-    {% for step in workflow.steps %}
-{{ workflow.id | to_puml_name }} --> {{ step.run[1:] | to_puml_name }}
-    {% endfor %}
-    }
-    {% endif %}
-
-    {% for input in workflow.inputs %}
-        {% if input.doc or input.label %}
-note left of {{ workflow.id | to_puml_name }}::{{ input.id }}
-    {% if input.doc %}{{ input.doc }}{% else %}{{ input.label }}{% endif %}
-end note
-        {% endif %}
-    {% endfor %}
-{% endfor %}
-@enduml
-'''
-
-class DiagramType(enum.Enum):
+class DiagramType(Enum):
     '''The supported PlantUML diagram types'''
-    COMPONENTS = _COMPONENTS_TEMPLATE
+    COMPONENTS = auto()
     '''Represents the PlantUML `components' diagram'''
-    CLASS = _CLASS_TEMPLATE
+    CLASS = auto()
     '''Represents the PlantUML `class' diagram'''
+    SEQUENCE = auto()
+    '''Represents the PlantUML `sequence' diagram'''
 
 def _to_puml_name(identifier: str) -> str:
     return identifier.replace('-', '_')
@@ -164,6 +65,14 @@ def _type_to_string(typ: Any) -> str:
 
     return typ.__name__
 
+env = Environment(
+    loader=PackageLoader(
+        package_name='cwl2puml'
+    )
+)
+env.filters['to_puml_name'] = _to_puml_name
+env.filters['type_to_string'] = _type_to_string
+
 def to_puml(
     cwl_document: Processes,
     diagram_type: DiagramType,
@@ -180,12 +89,7 @@ def to_puml(
     Returns:
         `None`: none
     '''
-    env = Environment()
-    env.filters['to_puml_name'] = _to_puml_name
-    env.filters['type_to_string'] = _type_to_string
-
-    string_template = diagram_type.value
-    template = env.from_string(string_template)
+    template = env.get_template(f"{diagram_type.name.lower()}.puml")
 
     workflows = cwl_document if isinstance(cwl_document, list) else [cwl_document]
 
