@@ -98,11 +98,21 @@ class "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} extends {{ workflo
     {% endif %}
 }
 
+    package "Requirements" {
     {% for requirement in workflow.requirements %}
         {% if requirement.class_ %}
 {{ workflow.id | to_puml_name }} --> {{ requirement.class_ }}
         {% endif %}
     {% endfor %}
+    }
+
+    package "Hints" {
+    {% for hint in workflow.hints %}
+        {% if hint.class_ %}
+{{ workflow.id | to_puml_name }} --> {{ hint.class_ }}
+        {% endif %}
+    {% endfor %}
+    }
 {% endfor %}
 
 {% for workflow in workflows %}
@@ -169,7 +179,9 @@ def to_puml(
     string_template = diagram_type.value
     template = env.from_string(string_template)
 
-    output_stream.write(template.render(workflows=cwl_document))
+    workflows = cwl_document if isinstance(cwl_document, list) else [cwl_document]
+
+    output_stream.write(template.render(workflows=workflows))
 
 @click.command()
 @click.option("--workflow", required=True, help="The CWL workflow file (it can be an URL or a file on the File System)")
