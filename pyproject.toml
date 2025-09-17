@@ -27,7 +27,8 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "cwl-loader>=0.5.0",
+  "cwl-loader>=0.6.0",
+  "cwltool>=3.1.20250715140722",
   "cwl-utils>=0.38",
   "click>=8.2.1",
   "Jinja2>=3.1.6",
@@ -35,7 +36,7 @@ dependencies = [
 ]
 
 [project.scripts]
-cwl2puml = "cwl2puml:main"
+cwl2puml = "cwl2puml.cli:main"
 
 [project.urls]
 Documentation = "https://github.com/eoap/cwl2puml#readme"

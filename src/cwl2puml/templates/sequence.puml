@@ -1,35 +1,45 @@
 @startuml
 autonumber "<b>[000]"
 
-{% for workflow in workflows %}
-{% if 'Workflow' == workflow.class_ %}
-box "{{ workflow.id }}"
-    control "{{ workflow.id }}" as {{ workflow.id | to_puml_name }}_or
-
-    {% if workflow.steps %}
-        {% for step in workflow.steps %}
-    participant {{ step.id | to_puml_name }}
-        {% endfor %}
-    {% endif %}
-end box
+{% macro serialize_workflow(workflow, source='') -%}
+control "{{ workflow.id }}" as {{ workflow.id | to_puml_name }}_or
 
 activate {{ workflow.id | to_puml_name }}_or
 
 {% for input in workflow.inputs %}
--> {{ workflow.id | to_puml_name }}_or : {{ input.id }}
-{% if input.label %}note top
+{{ source | to_puml_name }} -> {{ workflow.id | to_puml_name }}_or : {{ input.id | to_puml_name }}
+{% if input.label %}note right
 {{ input.label }}
 end note{% endif %}
 {% endfor %}
 
+{% for step in workflow.steps %}
+    {% for process in workflows %}
+        {% if process.id in step.run %}
+            {% if 'Workflow' == process.class_ %}
+{{ serialize_workflow(process) }}
+            {% else %}
+participant {% if step.label %}"{{ step.label }}" as {% endif %}{{ step.id | to_puml_name }}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+
 {% for output in workflow.outputs %}
-<-- {{ workflow.id | to_puml_name }}_or : {{ output.id }}
-{% if output.label %}note top
+<-- {{ workflow.id | to_puml_name }}_or : {{ output.id | to_puml_name }}
+{% if output.label %}note right of {{ output.id | to_puml_name }}
 {{ output.label }}
 end note{% endif %}
 {% endfor %}
 
-{% endif %}
+deactivate {{ workflow.id | to_puml_name }}_or
+{%- endmacro %}
+
+{% for process in workflows %}
+    {% if 'Workflow' == process.class_ %}
+== {{ process.id }} ==
+{{ serialize_workflow(process) }}
+    {% endif %}
 {% endfor %}
 
 @enduml
