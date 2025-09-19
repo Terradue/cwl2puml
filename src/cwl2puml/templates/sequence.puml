@@ -1,45 +1,75 @@
 @startuml
 autonumber "<b>[000]"
 
+{% set seen = namespace(ids=[]) %}
+
 {% macro serialize_workflow(workflow, source='') -%}
-control "{{ workflow.id }}" as {{ workflow.id | to_puml_name }}_or
-
-activate {{ workflow.id | to_puml_name }}_or
-
-{% for input in workflow.inputs %}
-{{ source | to_puml_name }} -> {{ workflow.id | to_puml_name }}_or : {{ input.id | to_puml_name }}
-{% if input.label %}note right
-{{ input.label }}
-end note{% endif %}
-{% endfor %}
-
 {% for step in workflow.steps %}
+    {% set wf_guard = namespace(found=false) %}
+
     {% for process in workflows %}
-        {% if process.id in step.run %}
-            {% if 'Workflow' == process.class_ %}
+        {% if process.id in step.run and 'Workflow' == process.class_ %}
+            {% set wf_guard.found = true %}
+box "{% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %}"
+control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
+activate {{ process.id | to_puml_name }}_or
+
+                {% for input in step.in_  %}
+{{ workflow.id | to_puml_name }}_or -> {{ process.id | to_puml_name }}_or : ""{{ input.id }}"" (from ""{{ input.source }}"")
+                {% endfor %}
+
 {{ serialize_workflow(process) }}
-            {% else %}
-participant {% if step.label %}"{{ step.label }}" as {% endif %}{{ step.id | to_puml_name }}
-            {% endif %}
+
+                {% for output in step.out  %}
+{{ workflow.id | to_puml_name }}_or <-- {{ process.id | to_puml_name }}_or : ""{{ output }}""
+                {% endfor %}
+
+deactivate {{ process.id | to_puml_name }}_or
+end box
         {% endif %}
     {% endfor %}
-{% endfor %}
+            
+    {% if not wf_guard.found %}
+participant {{ step.id | to_puml_name }}
+activate {{ step.id | to_puml_name }}
 
-{% for output in workflow.outputs %}
-<-- {{ workflow.id | to_puml_name }}_or : {{ output.id | to_puml_name }}
-{% if output.label %}note right of {{ output.id | to_puml_name }}
-{{ output.label }}
-end note{% endif %}
-{% endfor %}
+        {% for input in step.in_  %}
+{{ workflow.id | to_puml_name }}_or -> {{ step.id | to_puml_name }} : ""{{ input.id }}"" (from ""{{ input.source }}"")
+        {% endfor %}
 
-deactivate {{ workflow.id | to_puml_name }}_or
-{%- endmacro %}
-
-{% for process in workflows %}
-    {% if 'Workflow' == process.class_ %}
-== {{ process.id }} ==
-{{ serialize_workflow(process) }}
+        {% for output in step.out  %}
+{{ workflow.id | to_puml_name }}_or <-- {{ step.id | to_puml_name }} : ""{{ output }}""
+        {% endfor %}
+deactivate {{ step.id | to_puml_name }}
     {% endif %}
 {% endfor %}
+
+{% set _ = seen.ids.append(workflow.id) %}
+{%- endmacro %}
+
+entity "Workflow runner" as wfrunner
+activate wfrunner
+
+{% for process in workflows %}
+    {% if 'Workflow' == process.class_ and process.id not in seen.ids %}
+== {% if process.doc %}{{ process.doc }}{% elif process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %} ==
+control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
+activate {{ process.id | to_puml_name }}_or
+
+        {% for input in process.inputs %}
+wfrunner -> {{ process.id | to_puml_name }}_or : ""{{ input.id | to_puml_name }}""
+        {% endfor %}
+
+{{ serialize_workflow(process) }}
+
+        {% for output in process.outputs %}
+wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id | to_puml_name }}""
+        {% endfor %}
+
+deactivate {{ process.id | to_puml_name }}_or
+    {% endif %}
+{% endfor %}
+
+deactivate wfrunner
 
 @enduml
