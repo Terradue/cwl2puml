@@ -12,9 +12,14 @@ If not, see <https://creativecommons.org/licenses/by-sa/4.0/>.
 """
 
 from cwl_utils.parser import Process
+from datetime import datetime
 from enum import (
     auto,
     Enum
+)
+from importlib.metadata import (
+    version,
+    PackageNotFoundError
 )
 from jinja2 import (
     Environment,
@@ -29,6 +34,8 @@ from typing import (
     get_origin
 )
 
+import time
+
 class DiagramType(Enum):
     '''The supported PlantUML diagram types'''
     COMPONENTS = auto()
@@ -37,9 +44,11 @@ class DiagramType(Enum):
     '''Represents the PlantUML `class' diagram'''
     SEQUENCE = auto()
     '''Represents the PlantUML `sequence' diagram'''
+    STATE = auto()
+    '''Represents the PlantUML `state' diagram'''
 
 def _to_puml_name(identifier: str) -> str:
-    return identifier.replace('-', '_')
+    return identifier.replace('-', '_').replace('/', '_')
 
 def _type_to_string(typ: Any) -> str:
     if get_origin(typ) is Union:
@@ -55,6 +64,12 @@ def _type_to_string(typ: Any) -> str:
         return typ
 
     return typ.__name__
+
+def _get_version() -> str:
+    try:
+        return version("cwl2puml")
+    except PackageNotFoundError:
+        return 'N/A'
 
 _jinja_environment = Environment(
     loader=PackageLoader(
@@ -84,4 +99,10 @@ def to_puml(
 
     workflows = cwl_document if isinstance(cwl_document, list) else [cwl_document]
 
-    output_stream.write(template.render(workflows=workflows))
+    output_stream.write(
+        template.render(
+            version=_get_version(),
+            timestamp=datetime.fromtimestamp(time.time()).isoformat(timespec='milliseconds'),
+            workflows=workflows
+        )
+    )
