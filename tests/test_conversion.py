@@ -31,7 +31,7 @@ class Testloading(TestCase):
         out = StringIO()
         to_puml(
             cwl_document=self.graph,
-            diagram_type=DiagramType.COMPONENTS,
+            diagram_type=DiagramType.COMPONENT,
             output_stream=out
         )
         puml_output = out.getvalue()
@@ -40,7 +40,7 @@ class Testloading(TestCase):
         self.assertGreater(len(puml_output), 0, "Expected non empty PlantUML text for {diagram_type.name()}")
 
     def test_components_diagram(self):
-        self._test_diagram(DiagramType.COMPONENTS)
+        self._test_diagram(DiagramType.COMPONENT)
 
     def test_class_diagram(self):
         self._test_diagram(DiagramType.CLASS)

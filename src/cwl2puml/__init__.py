@@ -38,7 +38,7 @@ import time
 
 class DiagramType(Enum):
     '''The supported PlantUML diagram types'''
-    COMPONENTS = auto()
+    COMPONENT = auto()
     '''Represents the PlantUML `components' diagram'''
     CLASS = auto()
     '''Represents the PlantUML `class' diagram'''
