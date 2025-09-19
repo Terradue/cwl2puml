@@ -63,7 +63,7 @@ wfrunner -> {{ process.id | to_puml_name }}_or : ""{{ input.id | to_puml_name }}
 {{ serialize_workflow(process) }}
 
         {% for output in process.outputs %}
-wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id | to_puml_name }}""
+wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id | to_puml_name }}"" (from ""{{ output.outputSource[0] }}"")
         {% endfor %}
 
 deactivate {{ process.id | to_puml_name }}_or
