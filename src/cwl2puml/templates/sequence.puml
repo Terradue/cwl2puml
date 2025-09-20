@@ -6,7 +6,8 @@
 autonumber "<b>[000]"
 
 {% macro serialize_workflow(workflow) -%}
-        {% for step in workflow.steps %}
+{% for step in workflow.steps %}
+{% if step.scatter %}loop {{ step.scatterMethod }} {{ step.scatter }}{% endif %}
                 {% set wf_guard = namespace(found=false) %}
         {% for process in workflows %}
                 {% if process.id in step.run and 'Workflow' == process.class_ %}
@@ -43,7 +44,8 @@ autonumber "<b>[000]"
                 {% endfor %}
         deactivate {{ step.id | to_puml_name }}
         {% endif %}
-        {% endfor %}
+{% if step.scatter %}end{% endif %}
+{% endfor %}
 {%- endmacro %}
 
 entity "Workflow runner" as wfrunner
