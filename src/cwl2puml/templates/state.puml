@@ -15,10 +15,10 @@ hide empty description
 ' Workflow
 state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
                 {% for input in process.inputs %}
-    state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id }} <<entryPoint>>
+    state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
                 {% endfor %}
                 {% for input in step.in_  %}
-    {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ input.id }}
+    {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }}
                 {% endfor %}
 
                 {{ serialize_workflow(process) }}
@@ -34,8 +34,8 @@ state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
         {% if not wf_guard.found %}
     state {{ step.id | to_puml_name }} {
             {% for input in step.in_  %}
-        state "{{ input.id }}" as {{ step.id | to_puml_name }}_{{ input.id }} <<entryPoint>>
-        {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ input.id }}
+        state "{{ input.id }}" as {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
+        {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
             {% endfor %}
 
             {% for output in step.out  %}
@@ -50,7 +50,7 @@ state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
     {% if 'Workflow' == process.class_ and workflow_id == process.id %}
 state "{{ process.id }}" as {{ process.id | to_puml_name }} {
         {% for input in process.inputs %}
-    state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id }} <<entryPoint>>
+    state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
         {% endfor %}
 
 {{ serialize_workflow(process) }}
@@ -61,7 +61,7 @@ state "{{ output.id }}" as {{ process.id | to_puml_name }}_{{ output.id | to_pum
             {% endfor %}
 }
         {% for input in process.inputs %}
-[*] --> {{ process.id | to_puml_name }}_{{ input.id }}
+[*] --> {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }}
         {% endfor %}
     {% endif %}
 {% endfor %}
