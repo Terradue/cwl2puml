@@ -63,6 +63,10 @@ state "{{ output.id }}" as {{ process.id | to_puml_name }}_{{ output.id | to_pum
         {% for input in process.inputs %}
 [*] --> {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }}
         {% endfor %}
+
+        {% for output in process.outputs %}
+{{ process.id | to_puml_name }}_{{ output.id | to_puml_name }} --> [*]
+        {% endfor %}
     {% endif %}
 {% endfor %}
 
