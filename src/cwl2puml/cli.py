@@ -28,35 +28,26 @@ import time
 @click.command()
 @click.argument(
     'workflow',
-    required=True)
-@click.option(
-    '--puml',
-    type=click.Choice(
-        DiagramType,
-        case_sensitive=False
-    ),
-    required=True,
-    help="The PlantUML diagram type."
+    required=True
 )
 @click.option(
     '--output',
     type=click.Path(
         path_type=Path
     ),
-    required=False,
-    help="Output file path"
+    required=True,
+    help="Output directory path"
 )
 def main(
     workflow: str,
-    puml: DiagramType,
-    output: Optional[Path] = None,
+    workflow_id: str,
+    output: Path,
 ):
     '''
-    Converts a CWL,m given its document model, to a PlantUML diagram.
+    Converts a CWL, given its document model, to a PlantUML diagram.
 
     Args:
         `workflow` (`str`): The CWL workflow file (it can be an URL or a file on the File System)
-        `puml` (`DiagramType`): The PlantUML diagram type to render
         `output` (`Path`): The output file where streaming the PlantUML diagram
 
     Returns:
@@ -68,25 +59,20 @@ def main(
 
     logger.info('------------------------------------------------------------------------')
 
-    if output:
-        logger.info(f"Saving the new PlantUML Workflow diagram to {output}...")
+    output.mkdir(parents=True, exist_ok=True)
 
-        output.parent.mkdir(parents=True, exist_ok=True)
+    for diagram_type in DiagramType:
+        target = Path(output, f"{diagram_type.name.lower()}.puml")
+        logger.info(f"Saving PlantUML {diagram_type.name.lower()} diagram to {target}...")
 
-        with output.open("w") as f:
+        with target.open("w") as f:
             to_puml(
                 cwl_document=cwl_document,
-                diagram_type=puml,
+                diagram_type=diagram_type,
                 output_stream=f
             )
 
-        logger.info(f"PlantUML Workflow {puml.name.lower()} diagram successfully rendered to {output}!")
-    else:
-        to_puml(
-            cwl_document=cwl_document,
-            diagram_type=puml,
-            output_stream=sys.stdout
-        )
+        logger.info(f"PlantUML {diagram_type.name.lower()} diagram successfully rendered to {target}!")
 
     end_time = time.time()
 

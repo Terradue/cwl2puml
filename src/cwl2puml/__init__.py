@@ -11,6 +11,7 @@ You should have received a copy of the license along with this work.
 If not, see <https://creativecommons.org/licenses/by-sa/4.0/>.
 """
 
+from cwl_loader.utils import contains_workflow
 from cwl_utils.parser import Process
 from datetime import datetime
 from enum import (
@@ -82,7 +83,8 @@ _jinja_environment.filters['type_to_string'] = _type_to_string
 def to_puml(
     cwl_document: Process | List[Process],
     diagram_type: DiagramType,
-    output_stream: TextIO
+    output_stream: TextIO,
+    workflow_id: str = 'main'
 ):
     '''
     Converts a CWL,m given its document model, to a PlantUML diagram.
@@ -95,6 +97,12 @@ def to_puml(
     Returns:
         `None`: none
     '''
+    if not contains_workflow(
+        process=cwl_document,
+        process_id=workflow_id
+    ):
+        raise ValueError(f"Process {workflow_id} does not exist in input CWL document.")
+
     template = _jinja_environment.get_template(f"{diagram_type.name.lower()}.puml")
 
     workflows = cwl_document if isinstance(cwl_document, list) else [cwl_document]
@@ -103,6 +111,7 @@ def to_puml(
         template.render(
             version=_get_version(),
             timestamp=datetime.fromtimestamp(time.time()).isoformat(timespec='milliseconds'),
-            workflows=workflows
+            workflows=workflows,
+            workflow_id=workflow_id
         )
     )

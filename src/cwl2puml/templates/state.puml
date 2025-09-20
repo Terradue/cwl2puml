@@ -5,10 +5,7 @@
 @startuml
 hide empty description
 
-{% set seen = namespace(ids=[]) %}
-
 {% macro serialize_workflow(workflow) -%}
-    {% set _ = seen.ids.append(workflow.id) %}
     {% for step in workflow.steps %}
         {% set wf_guard = namespace(found=false) %}
 
@@ -50,7 +47,7 @@ state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
 {%- endmacro %}
 
 {% for process in workflows %}
-    {% if 'Workflow' == process.class_ and process.id not in seen.ids %}
+    {% if 'Workflow' == process.class_ and workflow_id == process.id %}
 state "{{ process.id }}" as {{ process.id | to_puml_name }} {
         {% for input in process.inputs %}
     state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id }} <<entryPoint>>
