@@ -68,6 +68,7 @@ def main(
         with target.open("w") as f:
             to_puml(
                 cwl_document=cwl_document,
+                workflow_id=workflow_id,
                 diagram_type=diagram_type,
                 output_stream=f
             )

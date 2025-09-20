@@ -31,7 +31,8 @@ class Testloading(TestCase):
         out = StringIO()
         to_puml(
             cwl_document=self.graph,
-            diagram_type=DiagramType.COMPONENT,
+            workflow_id='pattern-1',
+            diagram_type=diagram_type,
             output_stream=out
         )
         puml_output = out.getvalue()
@@ -44,3 +45,9 @@ class Testloading(TestCase):
 
     def test_class_diagram(self):
         self._test_diagram(DiagramType.CLASS)
+
+    def test_sequence_diagram(self):
+        self._test_diagram(DiagramType.SEQUENCE)
+
+    def test_state_diagram(self):
+        self._test_diagram(DiagramType.STATE)
