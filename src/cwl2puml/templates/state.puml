@@ -7,7 +7,7 @@ hide empty description
 
 {% macro serialize_workflow(workflow) -%}
     {% for step in workflow.steps %}
-        {% set process = index.get(step.run.split('#')[-1]) %}
+        {% set process = index.get(step.run[1:]) %}
         {% if 'Workflow' == process.class_ %}
 state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
             {% for input in process.inputs %}

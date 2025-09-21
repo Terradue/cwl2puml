@@ -9,7 +9,7 @@ autonumber "<b>[000]"
 {% for step in workflow.steps %}
 {% if step.when %}alt#LightGreen {{ step.when }}{% endif %}
 {% if step.scatter %}loop {{ step.scatterMethod }} {{ step.scatter }}{% endif %}
-        {% set process = index.get(step.run.split('#')[-1]) %}
+        {% set process = index.get(step.run[1:]) %}
         {% if 'Workflow' == process.class_ %}
 box "{% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %}"
         control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
