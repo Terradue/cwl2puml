@@ -7,31 +7,24 @@ hide empty description
 
 {% macro serialize_workflow(workflow) -%}
     {% for step in workflow.steps %}
-        {% set wf_guard = namespace(found=false) %}
-
-        {% for process in workflows %}
-            {% if process.id in step.run and 'Workflow' == process.class_ %}
-                {% set wf_guard.found = true %}
-' Workflow
+        {% set process = index.get(step.run.split('#')[-1]) %}
+        {% if 'Workflow' == process.class_ %}
 state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
-                {% for input in process.inputs %}
+            {% for input in process.inputs %}
     state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
-                {% endfor %}
-                {% for input in step.in_  %}
+            {% endfor %}
+            {% for input in step.in_  %}
     {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }}
-                {% endfor %}
+            {% endfor %}
 
-                {{ serialize_workflow(process) }}
+            {{ serialize_workflow(process) }}
 
-                {% for output in process.outputs %}
+            {% for output in process.outputs %}
     state "{{ output.id }}" as {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }} <<exitPoint>>
     {{ output.outputSource[0] | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }}
-                {% endfor %}
+            {% endfor %}
 }
-            {% endif %}
-        {% endfor %}
-
-        {% if not wf_guard.found %}
+        {% else %}
     state {{ step.id | to_puml_name }} {
             {% for input in step.in_  %}
         state "{{ input.id }}" as {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
@@ -46,19 +39,19 @@ state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
     {% endfor %}
 {%- endmacro %}
 
-{% for process in workflows %}
-    {% if 'Workflow' == process.class_ and workflow_id == process.id %}
+{% set process = index.get(workflow_id) %}
+{% if 'Workflow' == process.class_ %}
 state "{{ process.id }}" as {{ process.id | to_puml_name }} {
-        {% for input in process.inputs %}
+    {% for input in process.inputs %}
     state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
-        {% endfor %}
+    {% endfor %}
 
 {{ serialize_workflow(process) }}
 
-            {% for output in process.outputs %}
+        {% for output in process.outputs %}
 state "{{ output.id }}" as {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }} <<exitPoint>>
 {{ output.outputSource[0] | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }}
-            {% endfor %}
+        {% endfor %}
 }
         {% for input in process.inputs %}
 [*] --> {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }}
@@ -67,7 +60,7 @@ state "{{ output.id }}" as {{ process.id | to_puml_name }}_{{ output.id | to_pum
         {% for output in process.outputs %}
 {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }} --> [*]
         {% endfor %}
-    {% endif %}
-{% endfor %}
+{% endif %}
+
 
 @enduml

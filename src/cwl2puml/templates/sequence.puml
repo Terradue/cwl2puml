@@ -8,36 +8,33 @@ autonumber "<b>[000]"
 {% macro serialize_workflow(workflow) -%}
 {% for step in workflow.steps %}
 {% if step.scatter %}loop {{ step.scatterMethod }} {{ step.scatter }}{% endif %}
-                {% set wf_guard = namespace(found=false) %}
-        {% for process in workflows %}
-                {% if process.id in step.run and 'Workflow' == process.class_ %}
-                {% set wf_guard.found = true %}
+        {% set process = index.get(step.run.split('#')[-1]) %}
+        {% if 'Workflow' == process.class_ %}
         box "{% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %}"
         control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
         activate {{ process.id | to_puml_name }}_or
 
-                        {% for input in step.in_  %}
+                {% for input in step.in_  %}
         {{ workflow.id | to_puml_name }}_or -> {{ process.id | to_puml_name }}_or : ""{{ input.id }}"" (from ""{{ input.source }}"")
-                        {% endfor %}
+                {% endfor %}
 
         {{ serialize_workflow(process) }}
 
-                        {% for output in process.outputs %}
+                {% for output in process.outputs %}
         {{ workflow.id | to_puml_name }}_or <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output.outputSource[0] }}"")
-                        {% endfor %}
+                {% endfor %}
 
         deactivate {{ process.id | to_puml_name }}_or
         end box
-                {% endif %}
-        {% endfor %}
-                
-        {% if not wf_guard.found %}
-        participant {{ step.id | to_puml_name }}
+        {% else %}
+        participant "{{ process.id }}" as {{ step.id | to_puml_name }}
         activate {{ step.id | to_puml_name }}
 
                 {% for input in step.in_  %}
         {{ workflow.id | to_puml_name }}_or -> {{ step.id | to_puml_name }} : ""{{ input.id }}"" (from ""{{ input.source }}"")
                 {% endfor %}
+
+        {{ step.id | to_puml_name }} -> {{ step.id | to_puml_name }} : Compute
 
                 {% for output in step.out  %}
         {{ workflow.id | to_puml_name }}_or <-- {{ step.id | to_puml_name }} : ""{{ output }}""
@@ -51,8 +48,8 @@ autonumber "<b>[000]"
 entity "Workflow runner" as wfrunner
 activate wfrunner
 
-{% for process in workflows %}
-    {% if 'Workflow' == process.class_ and workflow_id == process.id %}
+{% set process = index.get(workflow_id) %}
+{% if 'Workflow' == process.class_ %}
 == {% if process.doc %}{{ process.doc }}{% elif process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %} ==
 control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
 activate {{ process.id | to_puml_name }}_or
@@ -68,8 +65,7 @@ wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{
         {% endfor %}
 
 deactivate {{ process.id | to_puml_name }}_or
-    {% endif %}
-{% endfor %}
+{% endif %}
 
 deactivate wfrunner
 

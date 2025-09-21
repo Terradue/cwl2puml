@@ -11,7 +11,10 @@ You should have received a copy of the license along with this work.
 If not, see <https://creativecommons.org/licenses/by-sa/4.0/>.
 """
 
-from cwl_loader.utils import contains_workflow
+from cwl_loader.utils import (
+    contains_workflow,
+    to_dict
+)
 from cwl_utils.parser import Process
 from datetime import datetime
 from enum import (
@@ -103,15 +106,16 @@ def to_puml(
     ):
         raise ValueError(f"Process {workflow_id} does not exist in input CWL document.")
 
-    template = _jinja_environment.get_template(f"{diagram_type.name.lower()}.puml")
+    index = to_dict(cwl_document) if isinstance(cwl_document, list) else { workflow_id: cwl_document }
 
-    workflows = cwl_document if isinstance(cwl_document, list) else [cwl_document]
+    template = _jinja_environment.get_template(f"{diagram_type.name.lower()}.puml")
 
     output_stream.write(
         template.render(
             version=_get_version(),
             timestamp=datetime.fromtimestamp(time.time()).isoformat(timespec='milliseconds'),
-            workflows=workflows,
-            workflow_id=workflow_id
+            workflows=index.values(),
+            workflow_id=workflow_id,
+            index=index
         )
     )
