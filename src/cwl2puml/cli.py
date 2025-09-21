@@ -31,6 +31,11 @@ import time
     required=True
 )
 @click.option(
+    '--workflow-id',
+    required=True,
+    help="ID of the main Workflow"
+)
+@click.option(
     '--output',
     type=click.Path(
         path_type=Path
@@ -65,15 +70,18 @@ def main(
         target = Path(output, f"{diagram_type.name.lower()}.puml")
         logger.info(f"Saving PlantUML {diagram_type.name.lower()} diagram to {target}...")
 
-        with target.open("w") as f:
-            to_puml(
-                cwl_document=cwl_document,
-                workflow_id=workflow_id,
-                diagram_type=diagram_type,
-                output_stream=f
-            )
+        try:
+            with target.open("w") as f:
+                to_puml(
+                    cwl_document=cwl_document,
+                    workflow_id=workflow_id,
+                    diagram_type=diagram_type,
+                    output_stream=f
+                )
 
-        logger.info(f"PlantUML {diagram_type.name.lower()} diagram successfully rendered to {target}!")
+            logger.success(f"PlantUML {diagram_type.name.lower()} diagram successfully rendered to {target}!")
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while rendering PlantUML {diagram_type.name.lower()} diagram to {target}: {e}")
 
     end_time = time.time()
 
