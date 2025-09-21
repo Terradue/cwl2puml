@@ -15,7 +15,8 @@ group {{ process.id }}
             {{ serialize_workflow(process) }}
 end group        
         {% else %}
-:{{ process.id }};
+:step: {{ step.id }}
+{{ process.class_ }}: {{ process.id }};
         {% endif %}
 {% if step.scatter %}repeat while ({{ step.scatterMethod }} {{ step.scatter }}){% endif %}
 {% if step.when %}endif{% endif %}
