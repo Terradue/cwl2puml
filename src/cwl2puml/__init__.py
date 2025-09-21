@@ -12,7 +12,7 @@ If not, see <https://creativecommons.org/licenses/by-sa/4.0/>.
 """
 
 from cwl_loader.utils import (
-    contains_workflow,
+    assert_process_contained,
     to_dict
 )
 from cwl_utils.parser import Process
@@ -100,7 +100,7 @@ def to_puml(
     Returns:
         `None`: none
     '''
-    if not contains_workflow(
+    if not assert_process_contained(
         process=cwl_document,
         process_id=workflow_id
     ):
