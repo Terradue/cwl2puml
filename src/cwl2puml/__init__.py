@@ -42,6 +42,8 @@ import time
 
 class DiagramType(Enum):
     '''The supported PlantUML diagram types'''
+    ACTIVITY = auto()
+    '''Represents the PlantUML `activity' diagram'''
     COMPONENT = auto()
     '''Represents the PlantUML `components' diagram'''
     CLASS = auto()
@@ -100,12 +102,11 @@ def to_puml(
     Returns:
         `None`: none
     '''
-    if not assert_process_contained(
+    assert_process_contained(
         process=cwl_document,
         process_id=workflow_id
-    ):
-        raise ValueError(f"Process {workflow_id} does not exist in input CWL document.")
-
+    )
+    
     index = to_dict(cwl_document) if isinstance(cwl_document, list) else { workflow_id: cwl_document }
 
     template = _jinja_environment.get_template(f"{diagram_type.name.lower()}.puml")
