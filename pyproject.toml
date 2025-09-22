@@ -18,11 +18,11 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
@@ -39,9 +39,9 @@ dependencies = [
 cwl2puml = "cwl2puml.cli:main"
 
 [project.urls]
-Documentation = "https://github.com/eoap/cwl2puml#readme"
-Issues = "https://github.com/eoap/cwl2puml/issues"
-Source = "https://github.com/eoap/cwl2puml"
+Documentation = "https://github.com/Terradue/cwl2puml#readme"
+Issues = "https://github.com/Terradue/cwl2puml/issues"
+Source = "https://github.com/Terradue/cwl2puml"
 
 [tool.hatch.version]
 path = "src/cwl2puml/__about__.py"
