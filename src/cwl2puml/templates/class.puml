@@ -5,7 +5,7 @@
 @startuml
 
 {% macro serialize_process(process) -%}
-    +class "{{ process.id }}" as {{ process.id | to_puml_name }} extends {{ process.class_ }} {
+    +class "{{ process.id }}" as {{ process.class_ }}_{{ process.id | to_puml_name }} extends {{ process.class_ }} {
         __ Inputs __
         {% for input in process.inputs %}
         + {{ input.id }}: {{ input.type_ | type_to_string }}{% if input.default %} = {{ input.default }}{% endif %}
@@ -34,11 +34,13 @@ package "{% if workflow.doc %}{{ workflow.doc }}{% elif workflow.label %}{{ work
     package "Steps" {
         {% for step in workflow.steps %}
             {% set process = index.get(step.run[1:]) %}
-            {% if 'Workflow' != process.class_ %}
-    {{ serialize_process(process) }}
 
-        {{ workflow.id | to_puml_name }} --> {{ step.run[1:] | to_puml_name }}
+            {% if 'Workflow' == process.class_ %}
+                {{ serialize_workflow(process) }}
+            {% else %}
+                {{ serialize_process(process) }}
             {% endif %}
+{{ workflow.class_ }}_{{ workflow.id | to_puml_name }} --> {{ process.class_ }}_{{ process.id | to_puml_name }}
         {% endfor %}
     }
     {% endif %}
@@ -48,7 +50,7 @@ package "{% if workflow.doc %}{{ workflow.doc }}{% elif workflow.label %}{{ work
         {% for requirement in workflow.requirements %}
             {% if requirement.class_ %}
         class {{ requirement.class_ }}
-        {{ workflow.id | to_puml_name }} --> {{ requirement.class_ }}
+        {{ workflow.class_ }}_{{ workflow.id | to_puml_name }} --> {{ requirement.class_ }}
             {% endif %}
         {% endfor %}
     }
@@ -58,23 +60,12 @@ package "{% if workflow.doc %}{{ workflow.doc }}{% elif workflow.label %}{{ work
     package "Hints" {
         {% for hint in workflow.hints %}
             {% if hint.class_ %}
-    {{ workflow.id | to_puml_name }} --> {{ hint.class_ }}
+    {{ workflow.class_ }}_{{ workflow.id | to_puml_name }} --> {{ hint.class_ }}
             {% endif %}
         {% endfor %}
     }
     {% endif %}
 }
-
-    {% if workflow.steps %}
-        {% for step in workflow.steps %}
-            {% set process = index.get(step.run[1:]) %}
-            {% if 'Workflow' == process.class_ %}
-{{ serialize_workflow(process) }}
-
-{{ workflow.id | to_puml_name }} -> {{ step.run[1:] | to_puml_name }}
-            {% endif %}
-        {% endfor %}
-    {% endif %}
 {%- endmacro %}
 
 {% set process = index.get(workflow_id) %}

@@ -29,9 +29,11 @@ from jinja2 import (
     Environment,
     PackageLoader
 )
+from loguru import logger
 from typing import (
     Any,
     List,
+    Mapping,
     Union,
     TextIO,
     get_args,
@@ -53,6 +55,8 @@ class DiagramType(Enum):
     STATE = auto()
     '''Represents the PlantUML `state' diagram'''
 
+# START custom built-in functions to simplify the CWL rendering
+
 def _to_puml_name(identifier: str) -> str:
     return identifier.replace('-', '_').replace('/', '_')
 
@@ -71,19 +75,53 @@ def _type_to_string(typ: Any) -> str:
 
     return typ.__name__
 
+def _not_single_item_list(
+    value : Any
+) -> bool:
+    return isinstance(value, list) and len(value) > 1
+
+def _get_value_from_str_or_single_item_list(
+    value : Any
+) -> Any:
+    return value[0] if isinstance(value, list) else value
+
 def _get_version() -> str:
     try:
         return version("cwl2puml")
     except PackageNotFoundError:
         return 'N/A'
 
+def _to_mapping(
+    functions: List[Any]
+) -> Mapping[str, Any]:
+    mapping: Mapping[str, Any] = {}
+
+    for function in functions:
+        mapping[function.__name__[1:]] = function
+
+    return mapping
+
 _jinja_environment = Environment(
     loader=PackageLoader(
         package_name='cwl2puml'
     )
 )
-_jinja_environment.filters['to_puml_name'] = _to_puml_name
-_jinja_environment.filters['type_to_string'] = _type_to_string
+_jinja_environment.filters.update(
+    _to_mapping(
+        [
+            _to_puml_name,
+            _type_to_string,
+            _get_value_from_str_or_single_item_list
+        ]
+    )
+)
+_jinja_environment.tests.update(
+    _to_mapping(
+        [ _not_single_item_list ]
+    )
+)
+
+# END
 
 def to_puml(
     cwl_document: Process | List[Process],

@@ -6,34 +6,59 @@
 hide empty description
 
 {% macro serialize_workflow(workflow) -%}
-    {% for step in workflow.steps %}
-        {% set process = index.get(step.run[1:]) %}
-        {% if 'Workflow' == process.class_ %}
+        {% for step in workflow.steps %}
+                {% set process = index.get(step.run[1:]) %}
+                {% if 'Workflow' == process.class_ %}
 state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
             {% for input in process.inputs %}
     state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
             {% endfor %}
             {% for input in step.in_  %}
     {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }}
-            {% endfor %}
+        {% endfor %}
 
-            {{ serialize_workflow(process) }}
+        {{ serialize_workflow(process) }}
 
-            {% for output in process.outputs %}
-    state "{{ output.id }}" as {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }} <<exitPoint>>
-    {{ output.outputSource[0] | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }}
-            {% endfor %}
+        {% for output in process.outputs %}
+state "{{ output.id }}" as {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }} <<exitPoint>>
+                {% if output.outputSource is not_single_item_list %}
+state {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }}_choice <<choice>>
+                        {% for output_source in output.outputSource %}
+{% if '/' not in output_source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ output_source | get_value_from_str_or_single_item_list | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }}_choice
+                        {% endfor %}
+                {% set output_source = output.outputSource | get_value_from_str_or_single_item_list %}
+{% if '/' not in output_source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ step.id | to_puml_name }}_{{ output.id | to_puml_name }}_choice --> {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }} : {{ output.pickValue }}
+                {% else %}
+{{ output.outputSource | get_value_from_str_or_single_item_list | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ output.id | to_puml_name }}
+                {% endif %}
+        {% endfor %}
+
 }
-        {% else %}
-    state {{ step.id | to_puml_name }} {
-            {% for input in step.in_  %}
-        state "{{ input.id }}" as {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
-        {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
-            {% endfor %}
+{% else %}
+        {% for input in step.in_  %}
+                {% if input.source is not_single_item_list %}
+        state {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}_choice <<choice>>
+                        {% for input_source in input.source  %}
+        {% if '/' not in input_source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input_source | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}_choice
+                        {% endfor %}
+                {% endif %}
+        {% endfor %}
 
-            {% for output in step.out  %}
+    state {{ step.id | to_puml_name }} {
+        {% for input in step.in_  %}
+        state "{{ input.id }}" as {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
+                {% if input.source is not_single_item_list %}
+        {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}_choice --> {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }} : {{ input.pickValue }}
+                {% else %}
+        {% set input_source = input.source | get_value_from_str_or_single_item_list %}
+        {% if '/' not in input_source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input_source | to_puml_name }} --> {{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
+                {% endif %}
+        {% endfor %}
+
+        {% for output in step.out  %}
         state "{{ output }}" as {{ step.id | to_puml_name }}_{{ output | to_puml_name }} <<exitPoint>>
-            {% endfor %}
+        {% endfor %}
+
     }
         {% endif %}
     {% endfor %}
@@ -46,11 +71,20 @@ state "{{ process.id }}" as {{ process.id | to_puml_name }} {
     state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
     {% endfor %}
 
+ 
 {{ serialize_workflow(process) }}
 
         {% for output in process.outputs %}
 state "{{ output.id }}" as {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }} <<exitPoint>>
-{{ output.outputSource[0] | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }}
+                {% if output.outputSource is not_single_item_list %}
+state {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }}_choice <<choice>>
+                        {% for output_source in output.outputSource %}
+{{ output_source | get_value_from_str_or_single_item_list | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }}_choice
+                        {% endfor %}
+{{ process.id | to_puml_name }}_{{ output.id | to_puml_name }}_choice --> {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }} : {{ output.pickValue }}
+                {% else %}
+{{ output.outputSource | get_value_from_str_or_single_item_list | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ output.id | to_puml_name }}
+                {% endif %}
         {% endfor %}
 }
         {% for input in process.inputs %}

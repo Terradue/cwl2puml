@@ -12,7 +12,7 @@ autonumber "<b>[000]"
         {% set process = index.get(step.run[1:]) %}
         {% if 'Workflow' == process.class_ %}
 box "{% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %}"
-        control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
+        control "step: {{ step.id }}\nWorkflow: {{ process.id }}" as {{ process.id | to_puml_name }}_or
         activate {{ process.id | to_puml_name }}_or
 
                 {% for input in step.in_  %}
@@ -22,17 +22,35 @@ box "{% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif
         {{ serialize_workflow(process) }}
 
                 {% for output in process.outputs %}
-        {{ workflow.id | to_puml_name }}_or <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output.outputSource[0] }}"")
+                        {% if output.outputSource is not_single_item_list %}
+        alt {{ output.pickValue }}
+                        {% for output_source in output.outputSource %}
+        {{ workflow.id | to_puml_name }}_or <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output_source }}"")
+        {% if not loop.last %}else{% endif %}
+                        {% endfor %}
+        end
+                        {% else %}
+        {{ workflow.id | to_puml_name }}_or <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output.outputSource | get_value_from_str_or_single_item_list }}"")
+                        {% endif %}
                 {% endfor %}
 
         deactivate {{ process.id | to_puml_name }}_or
 end box
         {% else %}
-participant "{{ process.id }}" as {{ step.id | to_puml_name }}
+participant "step: {{ step.id }}\n{{ process.class_ }}: {{ process.id }}" as {{ step.id | to_puml_name }}
 activate {{ step.id | to_puml_name }}
 
                 {% for input in step.in_  %}
-{{ workflow.id | to_puml_name }}_or -> {{ step.id | to_puml_name }} : ""{{ input.id }}"" (from ""{{ input.source }}"")
+                        {% if input.source is not_single_item_list %}
+alt {{ input.pickValue }}
+                                {% for input_source in input.source %}
+{{ workflow.id | to_puml_name }}_or -> {{ step.id | to_puml_name }} : ""{{ input.id }}"" (from ""{{ input_source }}"")
+{% if not loop.last %}else{% endif %}
+                                {% endfor %}
+end
+                        {% else %}
+{{ workflow.id | to_puml_name }}_or -> {{ step.id | to_puml_name }} : ""{{ input.id }}"" (from ""{{ input.source | get_value_from_str_or_single_item_list }}"")
+                        {% endif %}
                 {% endfor %}
 
 {{ step.id | to_puml_name }} -> {{ step.id | to_puml_name }} : Compute
@@ -68,7 +86,16 @@ wfrunner -> {{ process.id | to_puml_name }}_or : ""{{ input.id }}""
 {{ serialize_workflow(process) }}
 
         {% for output in process.outputs %}
-wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output.outputSource[0] }}"")
+                {% if output.outputSource is not_single_item_list %}
+alt {{ output.pickValue }}
+                        {% for output_source in output.outputSource %}
+wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output_source }}"")
+{% if not loop.last %}else{% endif %}
+                        {% endfor %}
+end
+                {% else %}
+wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output.outputSource | get_value_from_str_or_single_item_list }}"")
+                {% endif %}
         {% endfor %}
 
 deactivate {{ process.id | to_puml_name }}_or
