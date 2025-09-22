@@ -1,6 +1,6 @@
 # Introduction 
 
-This project aims to deliver a simple yet powerful CLI tool to ingest [CWL Workflows](https://www.commonwl.org/) and generate [PantUM diagrams](https://plantuml.com/).
+This project aims to deliver a simple yet powerful CLI tool to ingest [CWL Workflows](https://www.commonwl.org/) and generate [PlantUML diagrams](https://plantuml.com/).
 
 ## Installation
 
@@ -17,98 +17,123 @@ pip install --no-cache-dir git+https://github.com/Terradue/cwl2puml@main
 ## CLI execution
 
 ```
-Usage: cwl2puml [OPTIONS]
+Usage: cwl2puml [OPTIONS] WORKFLOW
+
+  Converts a CWL, given its document model, to a PlantUML diagram.
+
+  Args:     `workflow` (`str`): The CWL workflow file (it can be an URL or a
+  file on the File System)     `workflow-id` (`str`): The ID of the main
+  Workflow to render     `output` (`Path`): The output file where streaming
+  the PlantUML diagram
+
+  Returns:     `None`: none
 
 Options:
-  --workflow TEXT            The CWL workflow file (it can be an URL or a file
-                             on the File System)  [required]
-  --puml [components|class]  The PlantUML diagram type.  [required]
-  --output PATH              Output file path  [required]
-  --help                     Show this message and exit.
+  --workflow-id TEXT  ID of the main Workflow  [required]
+  --output PATH       Output directory path  [required]
+  --help              Show this message and exit.
 ```
 
 i.e.
 
 ```
 cwl2puml \
---workflow https://raw.githubusercontent.com/eoap/ogc-api-processes-with-zoo/refs/heads/feature-EOEPCA-469/cwl-workflows/eoap-api.cwl \
---puml components \
---output ./test.puml
+    --workflow-id main \
+    --output . \
+    https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl
 ```
 
 Output would be
 
 ```
-2025-08-11 13:58:40.945 | INFO     | cwl_loader:load_cwl_from_location:186 - Loading CWL document from https://raw.githubusercontent.com/eoap/ogc-api-processes-with-zoo/refs/heads/feature-EOEPCA-469/cwl-workflows/eoap-api.cwl...
-2025-08-11 13:58:41.463 | INFO     | cwl_loader:load_cwl_from_yaml:117 - Updating the model to v1.2...
-2025-08-11 13:58:41.478 | INFO     | cwl_loader:load_cwl_from_yaml:128 - Raw CWL document successfully updated to v1.2! Now converting to the CWL model...
-2025-08-11 13:58:54.228 | INFO     | cwl_loader:load_cwl_from_yaml:136 - Raw CWL document successfully updated to v1.2! Now dereferencing the FQNs...
-2025-08-11 13:58:54.228 | INFO     | cwl_loader:_clean_process:62 -   Cleaning Workflow eoap-api...
-2025-08-11 13:58:54.228 | INFO     | cwl_loader:_clean_process:62 -   Cleaning CommandLineTool stac-client...
-2025-08-11 13:58:54.228 | INFO     | cwl_loader:_clean_process:62 -   Cleaning CommandLineTool ogc-api-processes-client...
-2025-08-11 13:58:54.228 | INFO     | cwl_loader:load_cwl_from_yaml:144 - CWL document successfully dereferenced!
-2025-08-11 13:58:54.228 | INFO     | cwl2puml:main:167 - ------------------------------------------------------------------------
-2025-08-11 13:58:54.228 | INFO     | cwl2puml:main:171 - Saving the new PlantUML Workflow diagram to test.puml...
-2025-08-11 13:58:54.247 | INFO     | cwl2puml:main:180 - PlantUML Workflow components diagram successfully rendered to test.puml!
-2025-08-11 13:58:54.248 | INFO     | cwl2puml:main:184 - Total time: 13.3030 seconds
-2025-08-11 13:58:54.248 | INFO     | cwl2puml:main:185 - Finished at: 2025-08-11T13:58:54.248
+2025-09-22 16:22:42.498 | DEBUG    | cwl_loader:load_cwl_from_location:213 - Loading CWL document from https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl...
+2025-09-22 16:22:42.687 | DEBUG    | cwl_loader:_load_cwl_from_stream:216 - Reading stream from https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl...
+2025-09-22 16:22:42.727 | DEBUG    | cwl_loader:load_cwl_from_stream:190 - CWL data of type <class 'ruamel.yaml.comments.CommentedMap'> successfully loaded from stream
+2025-09-22 16:22:42.727 | DEBUG    | cwl_loader:load_cwl_from_yaml:135 - No needs to update the Raw CWL document since it targets already the v1.2
+2025-09-22 16:22:42.727 | DEBUG    | cwl_loader:load_cwl_from_yaml:137 - Parsing the raw CWL document to the CWL Utils DOM...
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:load_cwl_from_yaml:150 - Raw CWL document successfully parsed to the CWL Utils DOM!
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:load_cwl_from_yaml:152 - Dereferencing the steps[].run...
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:70 - Checking if https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl#stac must be externally imported...
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:74 - run_url: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl - uri: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:70 - Checking if https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl#rio_stack must be externally imported...
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:74 - run_url: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl - uri: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:70 - Checking if https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl#rio_warp_stack must be externally imported...
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:74 - run_url: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl - uri: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:70 - Checking if https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl#rio_color must be externally imported...
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_on_process:74 - run_url: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl - uri: https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:load_cwl_from_yaml:159 - steps[].run successfully dereferenced! Now dereferencing the FQNs...
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:load_cwl_from_yaml:163 - CWL document successfully dereferenced!
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:load_cwl_from_yaml:166 - Sorting Process instances by dependencies....
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:load_cwl_from_yaml:168 - Sorting process is over.
+2025-09-22 16:22:43.285 | DEBUG    | cwl_loader:_load_cwl_from_stream:224 - Stream from https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl successfully load!
+2025-09-22 16:22:43.286 | INFO     | cwl2puml.cli:main:66 - ------------------------------------------------------------------------
+2025-09-22 16:22:43.286 | INFO     | cwl2puml.cli:main:72 - Saving PlantUML activity diagram to activity.puml...
+2025-09-22 16:22:43.301 | SUCCESS  | cwl2puml.cli:main:83 - PlantUML activity diagram successfully rendered to activity.puml!
+2025-09-22 16:22:43.301 | INFO     | cwl2puml.cli:main:72 - Saving PlantUML component diagram to component.puml...
+2025-09-22 16:22:43.325 | SUCCESS  | cwl2puml.cli:main:83 - PlantUML component diagram successfully rendered to component.puml!
+2025-09-22 16:22:43.325 | INFO     | cwl2puml.cli:main:72 - Saving PlantUML class diagram to class.puml...
+2025-09-22 16:22:43.346 | SUCCESS  | cwl2puml.cli:main:83 - PlantUML class diagram successfully rendered to class.puml!
+2025-09-22 16:22:43.347 | INFO     | cwl2puml.cli:main:72 - Saving PlantUML sequence diagram to sequence.puml...
+2025-09-22 16:22:43.382 | SUCCESS  | cwl2puml.cli:main:83 - PlantUML sequence diagram successfully rendered to sequence.puml!
+2025-09-22 16:22:43.382 | INFO     | cwl2puml.cli:main:72 - Saving PlantUML state diagram to state.puml...
+2025-09-22 16:22:43.425 | SUCCESS  | cwl2puml.cli:main:83 - PlantUML state diagram successfully rendered to state.puml!
+2025-09-22 16:22:43.425 | INFO     | cwl2puml.cli:main:89 - Total time: 0.9278 seconds
+2025-09-22 16:22:43.426 | INFO     | cwl2puml.cli:main:90 - Finished at: 2025-09-22T16:22:43.425
 ```
 
-then try to `cat ./test.puml`:
+then, for example, try to `cat ./activity.puml` :
 
 ```
+/'
+ ' Diagram generated by cwl2puml v0.23.0
+ ' timestamp: 2025-09-22T16:22:43.301
+ '/
 @startuml
-skinparam linetype ortho
+start
 
-node "Workflow 'eoap-api'" {
-    component "eoap-api" as eoap_api {
-        portin "stac_api_endpoint" as eoap_api_stac_api_endpoint
-        portin "search_request" as eoap_api_search_request
-        portin "processes_api_endpoint" as eoap_api_processes_api_endpoint
-        portin "execute_request" as eoap_api_execute_request
-        portout "search_output" as eoap_api_search_output
-        portout "process_output" as eoap_api_process_output
-    }
+split
+    
+    :stac-item; <<input>>
+split again
+    
+    :epsg_code; <<input>>
+split again
+    
+    :bands; <<input>>
+end split
+    
+repeat
+        
+:step: step_curl
+CommandLineTool: stac;
+        
+repeat while (dotproduct step_curl/common_band_name)
 
-    component "discovery" as eoap_api_discovery {
-        portin "api_endpoint" as eoap_api_discovery_api_endpoint
-        eoap_api_stac_api_endpoint .down.> eoap_api_discovery_api_endpoint
-        portin "search_request" as eoap_api_discovery_search_request
-        eoap_api_search_request .down.> eoap_api_discovery_search_request
-        portout "search_output" as eoap_api_discovery_search_output
-    }
+if ($( inputs.epsg_code == "native"))
+           
+:step: step_stack
+CommandLineTool: rio_stack;
+        
+endif
 
-    component "processes" as eoap_api_processes {
-        portin "api_endpoint" as eoap_api_processes_api_endpoint
-        eoap_api_processes_api_endpoint .down.> eoap_api_processes_api_endpoint
-        portin "execute_request" as eoap_api_processes_execute_request
-        eoap_api_execute_request .down.> eoap_api_processes_execute_request
-        portin "search_results" as eoap_api_processes_search_results
-        eoap_api_discovery_search_output .down.> eoap_api_processes_search_results
-        portout "process_output" as eoap_api_processes_process_output
-    }
-}
+if ($( inputs.epsg_code != "native"))
 
-node "CommandLineTool 'stac-client'" {
-    component "stac-client" as stac_client {
-        portin "api_endpoint" as stac_client_api_endpoint
-        portin "search_request" as stac_client_search_request
-        portout "search_output" as stac_client_search_output
-    }
-}
-
-node "CommandLineTool 'ogc-api-processes-client'" {
-    component "ogc-api-processes-client" as ogc_api_processes_client {
-        portin "api_endpoint" as ogc_api_processes_client_api_endpoint
-        portin "execute_request" as ogc_api_processes_client_execute_request
-        portin "search_results" as ogc_api_processes_client_search_results
-        portout "process_output" as ogc_api_processes_client_process_output
-    }
-}
-
-eoap_api_discovery_search_output .up.> eoap_api_search_output
-eoap_api_processes_process_output .up.> eoap_api_process_output
-eoap_api_discovery .right.> stac_client
-eoap_api_processes .right.> ogc_api_processes_client
+:step: step_warp_stack
+CommandLineTool: rio_warp_stack;
+        
+endif
+               
+:step: step_color
+CommandLineTool: rio_color;
+        
+split
+    
+    :rgb-tif; <<output>>
+split again
+    
+    :stack; <<output>>
+end split
+    
+stop
 @enduml
 ```
