@@ -35,12 +35,16 @@ package "{% if workflow.doc %}{{ workflow.doc }}{% elif workflow.label %}{{ work
         {% for step in workflow.steps %}
             {% set process = index.get(step.run[1:]) %}
 
-            {% if 'Workflow' == process.class_ %}
-                {{ serialize_workflow(process) }}
-            {% else %}
-                {{ serialize_process(process) }}
-            {% endif %}
+            {% if process %}
+                {% if 'Workflow' == process.class_ %}
+                    {{ serialize_workflow(process) }}
+                {% else %}
+                    {{ serialize_process(process) }}
+                {% endif %}
 {{ workflow.class_ }}_{{ workflow.id | to_puml_name }} --> {{ process.class_ }}_{{ process.id | to_puml_name }}
+            {% else %}
+' [WARNING] {{ workflow.class_ }}_{{ workflow.id | to_puml_name }} --> {{ step.run[1:] }} : None
+            {% endif %}
         {% endfor %}
     }
     {% endif %}

@@ -72,7 +72,13 @@ def _type_to_string(typ: Any) -> str:
     if isinstance(typ, str):
         return typ
 
-    return typ.__name__
+    if hasattr(typ, 'symbols'):
+        return f"Enum: [ {', '.join([str(s.split('/')[-1]) for s in typ.symbols])} ]"
+
+    if hasattr(typ, '__name__'):
+        return type.__name__
+
+    return str(type)
 
 def _not_single_item_list(
     value : Any
