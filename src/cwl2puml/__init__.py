@@ -1,7 +1,6 @@
 """
 CWL2PlantUML aims to deliver a simple yet powerful CLI tool to ingest [CWL Workflows](https://www.commonwl.org/) and generate [PantUM diagrams](https://plantuml.com/).
 
-
 CWL2PlantUML (c) 2025
 
 CWL2PlantUML is licensed under
