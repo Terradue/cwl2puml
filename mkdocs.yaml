@@ -63,7 +63,6 @@ extra_javascript:
 nav:
   - index.md
   - API doc: api/latest/cwl2puml/index.md
-  - CLI doc: api/latest/cwl2puml/cli.md
   - Examples:
     - examples.ipynb
     - patterns.ipynb
