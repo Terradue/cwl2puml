@@ -53,6 +53,7 @@ def main(
 
     Args:
         `workflow` (`str`): The CWL workflow file (it can be an URL or a file on the File System)
+        `workflow-id` (`str`): The ID of the main Workflow to render
         `output` (`Path`): The output file where streaming the PlantUML diagram
 
     Returns:
