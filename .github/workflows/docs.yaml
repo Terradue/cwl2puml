@@ -8,7 +8,7 @@ on:
       # Only rebuild website when docs have changed
       - 'README.md'
       - 'docs/**'
-      - 'mkdocs.yml'
+      - 'mkdocs.yaml'
       - .github/**
 
 jobs:
