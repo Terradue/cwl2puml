@@ -141,7 +141,8 @@ def _assert_connected_graph(index: Mapping[str, Process]):
                     issues .append(f"- {process.id}.steps.{step.id}{step.run}")
 
     if issues:
-        raise ValueError(f"Detected unresolved links in the input $graph:\n{'\n'.join(issues)}")
+        nl = '\n'
+        raise ValueError(f"Detected unresolved links in the input $graph:\n{nl.join(issues)}")
 
 def to_puml(
     cwl_document: Process | List[Process],
