@@ -24,14 +24,24 @@ Usage: cwl2puml [OPTIONS] WORKFLOW
   Args:     `workflow` (`str`): The CWL workflow file (it can be an URL or a
   file on the File System)     `workflow-id` (`str`): The ID of the main
   Workflow to render     `output` (`Path`): The output file where streaming
-  the PlantUML diagram
+  the PlantUML diagram     `convert_image` (`bool`): Flag to ton on/off the
+  image generation (on, by default)     `puml_server` (`str`): The host of a
+  PlantUML as a service server (uml.planttext.com by default)
+  `image_format` (`ImageFormat`): The output image format of the PlantUML
+  diagram ('png' by default)
 
   Returns:     `None`: none
 
 Options:
-  --workflow-id TEXT  ID of the main Workflow  [required]
-  --output PATH       Output directory path  [required]
-  --help              Show this message and exit.
+  --workflow-id TEXT        ID of the main Workflow  [required]
+  --output PATH             Output directory path  [required]
+  --convert-image BOOLEAN   Flag to ton on/off the image generation (on, by
+                            default)
+  --puml-server TEXT        The host of a PlantUML as a service server
+                            (uml.planttext.com by default)
+  --image-format [png|svg]  The output image format of the PlantUML diagram
+                            ('png' by default)
+  --help                    Show this message and exit.
 ```
 
 i.e.
@@ -40,6 +50,7 @@ i.e.
 cwl2puml \
     --workflow-id main \
     --output . \
+    --convert-image no \
     https://raw.githubusercontent.com/eoap/how-to/refs/heads/main/cwl-workflows/conditional-workflows.cwl
 ```
 
