@@ -4,11 +4,21 @@
  '/
 @startuml
 
+{% macro serialize_enum(id, symbols) %}
+enum {{ id }} {
+    {% for symbol in symbols %}
+    {{ symbol.split('/')[-1] }}
+    {% endfor %}
+}
+{%- endmacro %}
+
 {% macro serialize_process(process) -%}
     +class "{{ process.id }}" as {{ process.class_ }}_{{ process.id | to_puml_name }} extends {{ process.class_ }} {
         __ Inputs __
         {% for input in process.inputs %}
+            {% if not input.type_.symbols %}
         + {{ input.id }}: {{ input.type_ | type_to_string }}{% if input.default %} = {{ input.default }}{% endif %}
+            {% endif %}
         {% endfor %}
 
         __ Outputs __
@@ -23,6 +33,17 @@
             {% endfor %}
         {% endif %}
     }
+
+    {% for input in process.inputs %}
+        {% if input.type_.symbols %}
+    enum {{ input.id }} {
+            {% for symbol in input.type_.symbols %}
+        {{ symbol.split('/')[-1] }}
+            {% endfor %}
+    }
+    {{ process.class_ }}_{{ process.id | to_puml_name }} -> {{ input.id }}
+        {% endif %}
+    {% endfor %}
 {%- endmacro %}
 
 {% macro serialize_workflow(workflow) -%}
@@ -35,12 +56,16 @@ package "{% if workflow.doc %}{{ workflow.doc }}{% elif workflow.label %}{{ work
         {% for step in workflow.steps %}
             {% set process = index.get(step.run[1:]) %}
 
-            {% if 'Workflow' == process.class_ %}
-                {{ serialize_workflow(process) }}
-            {% else %}
-                {{ serialize_process(process) }}
-            {% endif %}
+            {% if process %}
+                {% if 'Workflow' == process.class_ %}
+                    {{ serialize_workflow(process) }}
+                {% else %}
+                    {{ serialize_process(process) }}
+                {% endif %}
 {{ workflow.class_ }}_{{ workflow.id | to_puml_name }} --> {{ process.class_ }}_{{ process.id | to_puml_name }}
+            {% else %}
+' [WARNING] {{ workflow.class_ }}_{{ workflow.id | to_puml_name }} --> {{ step.run[1:] }} : None
+            {% endif %}
         {% endfor %}
     }
     {% endif %}
