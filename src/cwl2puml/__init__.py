@@ -129,7 +129,7 @@ def to_puml(
     workflow_id: str = 'main'
 ):
     '''
-    Converts a CWL,m given its document model, to a PlantUML diagram.
+    Converts a CWL, given its document model, to a PlantUML diagram.
 
     Args:
         `cwl_document` (`Processes`): The Processes object model representing the CWL document
