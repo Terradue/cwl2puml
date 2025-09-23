@@ -1,6 +1,6 @@
 # CWL Worflows processor to generate PlantUML diagrams
 
-This project aims to deliver a simple yet powerful CLI tool to ingest [CWL Workflows](https://www.commonwl.org/) and generate [PantUM diagrams](https://plantuml.com/).
+This project aims to deliver a simple yet powerful CLI tool to ingest [CWL Workflows](https://www.commonwl.org/) and generate [PlantUML diagrams](https://plantuml.com/).
 
 ## Contribute
 
