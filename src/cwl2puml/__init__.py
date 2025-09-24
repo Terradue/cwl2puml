@@ -11,8 +11,9 @@ If not, see <https://creativecommons.org/licenses/by-sa/4.0/>.
 """
 
 from cwl_loader.utils import (
+    assert_connected_graph,
     assert_process_contained,
-    to_dict
+    to_index
 )
 from cwl_utils.parser import (
     Process,
@@ -131,19 +132,6 @@ _jinja_environment.tests.update(
 
 # END
 
-# TODO maybe move this method in the loader
-def _assert_connected_graph(index: Mapping[str, Process]):
-    issues: List[str] = []
-    for process in index.values():
-        if any(isinstance(process, typ) for typ in get_args(Workflow)):
-            for step in getattr(process, 'steps', []):
-                if not index.get(step.run[1:]):
-                    issues .append(f"- {process.id}.steps.{step.id}{step.run}")
-
-    if issues:
-        nl = '\n'
-        raise ValueError(f"Detected unresolved links in the input $graph:\n{nl.join(issues)}")
-
 def to_puml(
     cwl_document: Process | List[Process],
     diagram_type: DiagramType,
@@ -165,10 +153,10 @@ def to_puml(
         process=cwl_document,
         process_id=workflow_id
     )
-    
-    index = to_dict(cwl_document) if isinstance(cwl_document, list) else { workflow_id: cwl_document }
 
-    _assert_connected_graph(index)
+    assert_connected_graph(cwl_document)
+    
+    index = to_index(cwl_document) if isinstance(cwl_document, list) else { workflow_id: cwl_document }
 
     template = _jinja_environment.get_template(f"{diagram_type.name.lower()}.puml")
 
