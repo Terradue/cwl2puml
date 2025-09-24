@@ -26,6 +26,7 @@ from io import StringIO
 from loguru import logger
 from pathlib import Path
 from plantuml import deflate_and_encode
+from typing import List
 
 import click
 import requests
@@ -45,6 +46,17 @@ class ImageFormat(Enum):
     required=True,
     type=click.STRING,
     help="ID of the main Workflow"
+)
+@click.option(
+    '--diagrams',
+    required=False,
+    type=click.Choice(
+        DiagramType,
+        case_sensitive=False
+    ),
+    default = list(DiagramType),
+    multiple=True,
+    help="The PlantUML diagram to serialize (all the supported kinds, by default)"
 )
 @click.option(
     '--output',
@@ -81,6 +93,7 @@ class ImageFormat(Enum):
 def main(
     workflow: str,
     workflow_id: str,
+    diagrams: List[DiagramType],
     output: Path,
     convert_image: bool,
     puml_server: str,
@@ -108,7 +121,7 @@ def main(
 
     output.mkdir(parents=True, exist_ok=True)
 
-    for diagram_type in DiagramType:
+    for diagram_type in diagrams:
         logger.info(f"Converting to {diagram_type.name.lower()} PlantUML diagram...")
         out = StringIO()
         try:
