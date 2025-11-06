@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://terradue.github.io/cwl2puml/</loc>
+         <lastmod>2025-11-06</lastmod>
+    </url>
+    <url>
+         <loc>https://terradue.github.io/cwl2puml/examples/</loc>
+         <lastmod>2025-11-06</lastmod>
+    </url>
+    <url>
+         <loc>https://terradue.github.io/cwl2puml/patterns/</loc>
+         <lastmod>2025-11-06</lastmod>
+    </url>
+    <url>
+         <loc>https://terradue.github.io/cwl2puml/api/latest/cwl2puml/</loc>
+         <lastmod>2025-11-06</lastmod>
+    </url>
+    <url>
+         <loc>https://terradue.github.io/cwl2puml/api/latest/cwl2puml/cli/</loc>
+         <lastmod>2025-11-06</lastmod>
+    </url>
+</urlset>
