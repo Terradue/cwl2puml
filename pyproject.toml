@@ -27,9 +27,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "cwl-loader>=0.10.0",
+  "cwl-loader>=0.13.0",
   "cwltool>=3.1.20250715140722",
-  "cwl-utils>=0.38",
+  "cwl-utils>=0.40",
   "click>=8.2.1",
   "Jinja2>=3.1.6",
   "loguru",
@@ -77,8 +77,13 @@ exclude_lines = [
 skip-install = false
 
 dependencies = [
-  "cwl-utils>=0.38",
-  "nose2",
+  "cwl-loader>=0.13.0",
+  "cwltool>=3.1.20250715140722",
+  "cwl-utils>=0.40",
+  "click>=8.2.1",
+  "Jinja2>=3.1.6",
+  "loguru",
+  "plantuml"
 ]
 
 [tool.hatch.envs.test.scripts]
