@@ -6,7 +6,9 @@
 
 skinparam linetype ortho
 
-{% for workflow in workflows %}
+{% set workflow = index.get(workflow_id) %}
+{% if 'Workflow' == workflow.class_ %}
+
 node "{{ workflow.class_ }} '{{ workflow.id }}'" {
     component "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
     {% for input in workflow.inputs %}
@@ -18,7 +20,7 @@ node "{{ workflow.class_ }} '{{ workflow.id }}'" {
     }
 
 {% for step in workflow.steps %}
-    component "{{ step.id }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }} {
+    frame "{{ step.id }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }} {
     {% for input in step.in_ %}
         portin "{{ input.id }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ input.id | to_puml_name }}
         {% if input.source is not_single_item_list %}
@@ -34,12 +36,12 @@ node "{{ workflow.class_ }} '{{ workflow.id }}'" {
     {% for output in step.out %}
         portout "{{ output }}" as {{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }}_{{ output | to_puml_name }}
     {% endfor %}
+
+        component "{{ step.run[1:] }}" as {{ step.run[1:] | to_puml_name }}
     }
 {% endfor %}
 }
-{% endfor %}
 
-{% for workflow in workflows %}
     {% for output in workflow.outputs %}
         {% if output.outputSource %}
             {% if output.outputSource is not_single_item_list %}
@@ -51,10 +53,6 @@ node "{{ workflow.class_ }} '{{ workflow.id }}'" {
             {% endif %}
         {% endif %}
     {% endfor %}
-
-    {% for step in workflow.steps %}
-{{ workflow.id | to_puml_name }}_{{ step.id | to_puml_name }} .right.> {{ step.run[1:] | to_puml_name }}
-    {% endfor %}
-{% endfor %}
+{% endif %}
 
 @enduml
