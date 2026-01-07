@@ -4,14 +4,6 @@
  '/
 @startuml
 
-{% macro serialize_enum(id, symbols) %}
-enum {{ id }} {
-    {% for symbol in symbols %}
-    {{ symbol.split('/')[-1] }}
-    {% endfor %}
-}
-{%- endmacro %}
-
 {% macro serialize_process(process) -%}
     +class "{{ process.id }}" as {{ process.class_ }}_{{ process.id | to_puml_name }} extends {{ process.class_ }} {
         __ Inputs __
@@ -36,18 +28,18 @@ enum {{ id }} {
 
     {% for input in process.inputs %}
         {% if input.type_.symbols %}
-    enum {{ input.id }} {
+    enum "{{ input.id }}" as {{ input.id | to_puml_name }} {
             {% for symbol in input.type_.symbols %}
         {{ symbol.split('/')[-1] }}
             {% endfor %}
     }
-    {{ process.class_ }}_{{ process.id | to_puml_name }} -> {{ input.id }}
+    {{ process.class_ }}_{{ process.id | to_puml_name }} -> {{ input.id | to_puml_name }}
         {% endif %}
     {% endfor %}
 {%- endmacro %}
 
 {% macro serialize_workflow(workflow) -%}
-package "{% if workflow.doc %}{{ workflow.doc }}{% elif workflow.label %}{{ workflow.label }}{% else %}{{ workflow.id }}{% endif %}" {
+package "{% if workflow.label %}{{ workflow.label }}{% elif workflow.doc %}{{ workflow.doc }}{% else %}{{ workflow.id }}{% endif %}" {
 
     {{ serialize_process(workflow) }}
 

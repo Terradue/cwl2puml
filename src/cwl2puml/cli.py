@@ -159,6 +159,7 @@ def main(
                     logger.success(f"PlantUML {diagram_type.name.lower()} {image_format.name.lower()} image successfully dumped to {target}!")
                 else:
                     logger.error(f"Impossible to render {diagram_type.name.lower()} {image_format.name.lower()} image, {puml_server} server replied: {response.status_code} {response.reason}")
+                    logger.error(f"Deflated and encoded PlantUML Diagram: {encoded}")
         except Exception as e:
             logger.error(f"An unexpected error occurred while converting to {diagram_type.name.lower()} PlantUML diagram: {e}")
 
