@@ -37,7 +37,7 @@ class ImageFormat(Enum):
     PNG = auto()
     SVG = auto()
 
-@click.command()
+@click.command(context_settings={'show_default': True})
 @click.argument(
     'workflow',
     required=True
@@ -55,7 +55,7 @@ class ImageFormat(Enum):
         DiagramType,
         case_sensitive=False
     ),
-    default = list(DiagramType),
+    default = [diagram_type.name.lower() for diagram_type in list(DiagramType)],
     multiple=True,
     help="The PlantUML diagram to serialize (all the supported kinds, by default)"
 )
@@ -71,15 +71,16 @@ class ImageFormat(Enum):
     '--convert-image',
     required=False,
     type=click.BOOL,
-    default=True,
-    help="Flag to ton on/off the image generation (on, by default)"
+    is_flag=True,
+    default=False,
+    help="Flag to ton on/off the image generation "
 )
 @click.option(
     '--puml-server',
     required=False,
     type=click.STRING,
     default='uml.planttext.com',
-    help="The host of a PlantUML as a service server (uml.planttext.com by default)"
+    help="The host of a PlantUML as a service server"
 )
 @click.option(
     '--image-format',
@@ -89,7 +90,7 @@ class ImageFormat(Enum):
         case_sensitive=False
     ),
     default = ImageFormat.PNG,
-    help="The output image format of the PlantUML diagram ('png' by default)"
+    help="The output image format of the PlantUML diagram"
 )
 def main(
     workflow: str,
