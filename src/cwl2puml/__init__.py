@@ -17,10 +17,7 @@ from cwl_loader.utils import (
     assert_process_contained,
     to_index
 )
-from cwl_utils.parser import (
-    Process,
-    Workflow
-)
+from cwl_utils.parser import Process
 from datetime import datetime
 from enum import (
     auto,
