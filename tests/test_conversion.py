@@ -134,16 +134,21 @@ class TestHelpers(TestCase):
         fake_template = type(
             "FakeTemplate",
             (),
-            {"render": lambda self, **kwargs: f"{kwargs['workflow_id']}|{kwargs['version']}"},
+            {
+                "render": lambda self, **kwargs: (
+                    f"{kwargs['workflow_id']}|{kwargs['version']}"
+                )
+            },
         )()
         output = StringIO()
 
-        with patch("cwl2puml.assert_process_contained") as assert_process_contained, patch(
-            "cwl2puml.assert_connected_graph"
-        ) as assert_connected_graph, patch(
-            "cwl2puml._get_version", return_value="1.2.3"
-        ), patch.object(
-            cwl2puml._jinja_environment, "get_template", return_value=fake_template
+        with (
+            patch("cwl2puml.assert_process_contained") as assert_process_contained,
+            patch("cwl2puml.assert_connected_graph") as assert_connected_graph,
+            patch("cwl2puml._get_version", return_value="1.2.3"),
+            patch.object(
+                cwl2puml._jinja_environment, "get_template", return_value=fake_template
+            ),
         ):
             cwl2puml.to_puml(
                 cwl_document=fake_document,
@@ -164,13 +169,15 @@ class TestCli(TestCase):
         self.runner = CliRunner()
 
     def test_main_writes_puml_output(self):
-        with TemporaryDirectory() as tmpdir, patch(
-            "cwl2puml.cli.load_cwl_from_location", return_value=object()
-        ), patch("cwl2puml.cli.to_puml") as to_puml_mock:
+        with (
+            TemporaryDirectory() as tmpdir,
+            patch("cwl2puml.cli.load_cwl_from_location", return_value=object()),
+            patch("cwl2puml.cli.to_puml") as to_puml_mock,
+        ):
             target = Path(tmpdir, "component.puml")
             to_puml_mock.side_effect = (
-                lambda cwl_document, workflow_id, diagram_type, output_stream: output_stream.write(
-                    "@startuml\n@enduml\n"
+                lambda cwl_document, workflow_id, diagram_type, output_stream: (
+                    output_stream.write("@startuml\n@enduml\n")
                 )
             )
 
@@ -192,17 +199,23 @@ class TestCli(TestCase):
             self.assertIn("@startuml", target.read_text())
 
     def test_main_writes_image_output_when_requested(self):
-        response = type("Response", (), {"status_code": 200, "content": b"svg-data", "reason": "OK"})()
+        response = type(
+            "Response", (), {"status_code": 200, "content": b"svg-data", "reason": "OK"}
+        )()
 
-        with TemporaryDirectory() as tmpdir, patch(
-            "cwl2puml.cli.load_cwl_from_location", return_value=object()
-        ), patch("cwl2puml.cli.to_puml") as to_puml_mock, patch(
-            "cwl2puml.cli.deflate_and_encode", return_value="encoded-diagram"
-        ) as encode_mock, patch("cwl2puml.cli.requests.get", return_value=response) as get_mock:
+        with (
+            TemporaryDirectory() as tmpdir,
+            patch("cwl2puml.cli.load_cwl_from_location", return_value=object()),
+            patch("cwl2puml.cli.to_puml") as to_puml_mock,
+            patch(
+                "cwl2puml.cli.deflate_and_encode", return_value="encoded-diagram"
+            ) as encode_mock,
+            patch("cwl2puml.cli.requests.get", return_value=response) as get_mock,
+        ):
             target = Path(tmpdir, "component.svg")
             to_puml_mock.side_effect = (
-                lambda cwl_document, workflow_id, diagram_type, output_stream: output_stream.write(
-                    "@startuml\n@enduml\n"
+                lambda cwl_document, workflow_id, diagram_type, output_stream: (
+                    output_stream.write("@startuml\n@enduml\n")
                 )
             )
 
@@ -230,17 +243,23 @@ class TestCli(TestCase):
             self.assertEqual(target.read_bytes(), b"svg-data")
 
     def test_main_skips_image_file_on_render_error(self):
-        response = type("Response", (), {"status_code": 500, "content": b"", "reason": "Server Error"})()
+        response = type(
+            "Response",
+            (),
+            {"status_code": 500, "content": b"", "reason": "Server Error"},
+        )()
 
-        with TemporaryDirectory() as tmpdir, patch(
-            "cwl2puml.cli.load_cwl_from_location", return_value=object()
-        ), patch("cwl2puml.cli.to_puml") as to_puml_mock, patch(
-            "cwl2puml.cli.deflate_and_encode", return_value="encoded-diagram"
-        ), patch("cwl2puml.cli.requests.get", return_value=response):
+        with (
+            TemporaryDirectory() as tmpdir,
+            patch("cwl2puml.cli.load_cwl_from_location", return_value=object()),
+            patch("cwl2puml.cli.to_puml") as to_puml_mock,
+            patch("cwl2puml.cli.deflate_and_encode", return_value="encoded-diagram"),
+            patch("cwl2puml.cli.requests.get", return_value=response),
+        ):
             target = Path(tmpdir, "component.png")
             to_puml_mock.side_effect = (
-                lambda cwl_document, workflow_id, diagram_type, output_stream: output_stream.write(
-                    "@startuml\n@enduml\n"
+                lambda cwl_document, workflow_id, diagram_type, output_stream: (
+                    output_stream.write("@startuml\n@enduml\n")
                 )
             )
 
@@ -262,9 +281,11 @@ class TestCli(TestCase):
             self.assertFalse(target.exists())
 
     def test_main_catches_conversion_exceptions(self):
-        with TemporaryDirectory() as tmpdir, patch(
-            "cwl2puml.cli.load_cwl_from_location", return_value=object()
-        ), patch("cwl2puml.cli.to_puml", side_effect=RuntimeError("boom")):
+        with (
+            TemporaryDirectory() as tmpdir,
+            patch("cwl2puml.cli.load_cwl_from_location", return_value=object()),
+            patch("cwl2puml.cli.to_puml", side_effect=RuntimeError("boom")),
+        ):
             target = Path(tmpdir, "component.puml")
             result = self.runner.invoke(
                 cli.main,
