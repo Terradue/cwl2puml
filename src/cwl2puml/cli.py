@@ -12,16 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import (
-    DiagramType,
-    to_puml
-)
+from . import DiagramType, to_puml
 from cwl_loader import load_cwl_from_location
 from datetime import datetime
-from enum import (
-    auto,
-    Enum
-)
+from enum import auto, Enum
 from http import HTTPStatus
 from io import StringIO
 from loguru import logger
@@ -33,64 +27,52 @@ import click
 import requests
 import time
 
+
 class ImageFormat(Enum):
     PNG = auto()
     SVG = auto()
 
-@click.command(context_settings={'show_default': True})
-@click.argument(
-    'workflow',
-    required=True
+
+@click.command(context_settings={"show_default": True})
+@click.argument("workflow", required=True)
+@click.option(
+    "--workflow-id", required=True, type=click.STRING, help="ID of the main Workflow"
 )
 @click.option(
-    '--workflow-id',
-    required=True,
-    type=click.STRING,
-    help="ID of the main Workflow"
-)
-@click.option(
-    '--diagrams',
+    "--diagrams",
     required=False,
-    type=click.Choice(
-        DiagramType,
-        case_sensitive=False
-    ),
-    default = [diagram_type.name.lower() for diagram_type in list(DiagramType)],
+    type=click.Choice(DiagramType, case_sensitive=False),
+    default=[diagram_type.name.lower() for diagram_type in list(DiagramType)],
     multiple=True,
-    help="The PlantUML diagram to serialize (all the supported kinds, by default)"
+    help="The PlantUML diagram to serialize (all the supported kinds, by default)",
 )
 @click.option(
-    '--output',
-    type=click.Path(
-        path_type=Path
-    ),
+    "--output",
+    type=click.Path(path_type=Path),
     required=True,
-    help="Output directory path"
+    help="Output directory path",
 )
 @click.option(
-    '--convert-image',
+    "--convert-image",
     required=False,
     type=click.BOOL,
     is_flag=True,
     default=False,
-    help="Flag to ton on/off the image generation "
+    help="Flag to ton on/off the image generation ",
 )
 @click.option(
-    '--puml-server',
+    "--puml-server",
     required=False,
     type=click.STRING,
-    default='uml.planttext.com',
-    help="The host of a PlantUML as a service server"
+    default="uml.planttext.com",
+    help="The host of a PlantUML as a service server",
 )
 @click.option(
-    '--image-format',
+    "--image-format",
     required=False,
-    type=click.Choice(
-        ImageFormat,
-        case_sensitive=False
-    ),
-    default = ImageFormat.PNG,
-    help="The output image format of the PlantUML diagram"
+    type=click.Choice(ImageFormat, case_sensitive=False),
+    default=ImageFormat.PNG,
+    help="The output image format of the PlantUML diagram",
 )
 def main(
     workflow: str,
@@ -99,9 +81,9 @@ def main(
     output: Path,
     convert_image: bool,
     puml_server: str,
-    image_format: ImageFormat
+    image_format: ImageFormat,
 ):
-    '''
+    """
     Converts a CWL, given its document model, to a PlantUML diagram.
 
     Args:
@@ -114,12 +96,14 @@ def main(
 
     Returns:
         `None`: none
-    '''
+    """
     start_time = time.time()
 
     cwl_document = load_cwl_from_location(path=workflow)
 
-    logger.info('------------------------------------------------------------------------')
+    logger.info(
+        "------------------------------------------------------------------------"
+    )
 
     output.mkdir(parents=True, exist_ok=True)
 
@@ -131,40 +115,59 @@ def main(
                 cwl_document=cwl_document,
                 workflow_id=workflow_id,
                 diagram_type=diagram_type,
-                output_stream=out
+                output_stream=out,
             )
-        
+
             target = Path(output, f"{diagram_type.name.lower()}.puml")
 
             clear_output = out.getvalue()
-            logger.info(f"Saving PlantUML {diagram_type.name.lower()} diagram to {target}...")
+            logger.info(
+                f"Saving PlantUML {diagram_type.name.lower()} diagram to {target}..."
+            )
 
             with target.open("w") as f:
                 f.write(clear_output)
 
-            logger.success(f"PlantUML {diagram_type.name.lower()} diagram successfully dumped to {target}!")
+            logger.success(
+                f"PlantUML {diagram_type.name.lower()} diagram successfully dumped to {target}!"
+            )
 
             if convert_image:
-                logger.info(f"Converting PlantUML {diagram_type.name.lower()} diagram to '{image_format.name.lower()}'...")
+                logger.info(
+                    f"Converting PlantUML {diagram_type.name.lower()} diagram to '{image_format.name.lower()}'..."
+                )
 
                 encoded = deflate_and_encode(clear_output)
                 diagram_url = f"https://{puml_server}/plantuml/{image_format.name.lower()}/{encoded}"
                 response = requests.get(diagram_url)
                 if HTTPStatus.OK.value == response.status_code:
-                    target = Path(output, f"{diagram_type.name.lower()}.{image_format.name.lower()}")
-                    logger.info(f"Saving PlantUML {diagram_type.name.lower()} {image_format.name.lower()} image to {target}...")
+                    target = Path(
+                        output,
+                        f"{diagram_type.name.lower()}.{image_format.name.lower()}",
+                    )
+                    logger.info(
+                        f"Saving PlantUML {diagram_type.name.lower()} {image_format.name.lower()} image to {target}..."
+                    )
 
-                    with target.open('wb') as f:
+                    with target.open("wb") as f:
                         f.write(response.content)
 
-                    logger.success(f"PlantUML {diagram_type.name.lower()} {image_format.name.lower()} image successfully dumped to {target}!")
+                    logger.success(
+                        f"PlantUML {diagram_type.name.lower()} {image_format.name.lower()} image successfully dumped to {target}!"
+                    )
                 else:
-                    logger.error(f"Impossible to render {diagram_type.name.lower()} {image_format.name.lower()} image, {puml_server} server replied: {response.status_code} {response.reason}")
+                    logger.error(
+                        f"Impossible to render {diagram_type.name.lower()} {image_format.name.lower()} image, {puml_server} server replied: {response.status_code} {response.reason}"
+                    )
                     logger.error(f"Deflated and encoded PlantUML Diagram: {encoded}")
         except Exception as e:
-            logger.error(f"An unexpected error occurred while converting to {diagram_type.name.lower()} PlantUML diagram: {e}")
+            logger.error(
+                f"An unexpected error occurred while converting to {diagram_type.name.lower()} PlantUML diagram: {e}"
+            )
 
     end_time = time.time()
 
     logger.info(f"Total time: {end_time - start_time:.4f} seconds")
-    logger.info(f"Finished at: {datetime.fromtimestamp(end_time).isoformat(timespec='milliseconds')}")
+    logger.info(
+        f"Finished at: {datetime.fromtimestamp(end_time).isoformat(timespec='milliseconds')}"
+    )

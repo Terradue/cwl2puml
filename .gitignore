@@ -5,3 +5,5 @@ __pycache__
 .settings
 .venv
 docs/api
+.ruff_cache/
+.pytest_cache/
