@@ -1,4 +1,4 @@
-# Copyright 2025 Terradue
+# Copyright 2026 Terradue
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,58 +12,86 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: publish-to-pypi
+name: package
 
 on:
   push:
-    branches: [develop, main, "patch-1" ]
-    paths:
-    - 'src/**'
-    - '.github/workflows/package.yaml'
-
-  release:
-    types: [published]
+    branches:
+    - feature
+    - feature/**
+    - develop
+    - main
+    tags:
+    - v*.*.*
   pull_request:
-    branches: [develop, main]
-    paths:
-    - 'src/**'
+    branches:
+    - feature
+    - feature/**
+    - develop
+    - main
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
-
-  deploy:
+  ci:
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/')
     runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
-
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-        cache: 'pip'
-    - name: Install dependencies
+        python-version: '3.12'
+        cache: pip
+
+    - name: Install tooling
+      run: pip install hatch ruff
+
+    - name: Ruff Check
+      run: ruff check .
+
+    - name: Ruff Lint
+      run: ruff format --check .
+
+    - name: Run tests
+      run: hatch run test:test-q
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
+
+    - name: Install Hatch
+      run: pip install hatch
+
+    - name: Verify tag matches project version
       run: |
-        # python -m pip install --upgrade pip
-        pip install hatch
+        TAG_VERSION="${GITHUB_REF_NAME#v}"
+        PROJECT_VERSION="$(hatch version)"
+
+        echo "Tag version: ${TAG_VERSION}"
+        echo "Project version: ${PROJECT_VERSION}"
+
+        if [ "${TAG_VERSION}" != "${PROJECT_VERSION}" ]; then
+          echo "Tag ${GITHUB_REF_NAME} does not match project version ${PROJECT_VERSION}"
+          exit 1
+        fi
+
     - name: Build package
-      run: |
-        hatch build 
-    - name: Test package
-      run: |
-        hatch test
-    - name: Publish package distributions to PyPI (main)
-      if: github.ref == 'refs/heads/main'
+      run: hatch build
+
+    - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        repository-url: https://upload.pypi.org/legacy/
-    - name: Publish package distributions to PyPI (develop)
-      if: github.ref != 'refs/heads/main' 
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        repository-url: https://test.pypi.org/legacy/
