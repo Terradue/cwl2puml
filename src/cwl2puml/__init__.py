@@ -41,9 +41,17 @@ class DiagramType(Enum):
 
 # START custom built-in functions to simplify the CWL rendering
 
+translation = str.maketrans(
+    {
+        "-": "_",
+        "/": "_",
+        ".": "_",
+    }
+)
+
 
 def _to_puml_name(identifier: str) -> str:
-    return identifier.replace("-", "_").replace("/", "_")
+    return identifier.translate(translation)
 
 
 def _type_to_string(typ: Any) -> str:

@@ -75,7 +75,7 @@ activate wfrunner
 
 {% set process = index.get(workflow_id) %}
 {% if 'Workflow' == process.class_ %}
-== {% if process.doc %}{{ process.doc }}{% elif process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %} ==
+== {% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %} ==
 control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
 activate {{ process.id | to_puml_name }}_or
 
