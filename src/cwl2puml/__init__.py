@@ -21,7 +21,37 @@ from jinja2 import Environment, PackageLoader
 
 from typing import Any, List, Mapping, Union, TextIO, get_args, get_origin
 
+import re
 import time
+
+
+def _a_string(typ: Any) -> bool:
+    return isinstance(typ, str)
+
+
+def _a_list(typ: Any) -> bool:
+    return isinstance(typ, list)
+
+
+def _an_enum(typ: Any) -> bool:
+    return hasattr(typ, "symbols")
+
+
+def _to_camel_case(value: str) -> str:
+    parts = re.split(r"[-_]+", value.strip())
+    return "".join(p[:1].upper() + p[1:] for p in parts if p)
+
+
+def _get_uri_split_part(uri: str, split_char: str) -> str:
+    return uri.split(split_char)[-1]
+
+
+def get_uri_anchor(uri: str) -> str:
+    return _get_uri_split_part(uri, "#")
+
+
+def get_uri_last_part(uri: str) -> str:
+    return _get_uri_split_part(uri, "/")
 
 
 class DiagramType(Enum):
@@ -54,28 +84,54 @@ def _to_puml_name(identifier: str) -> str:
     return identifier.translate(translation)
 
 
-def _type_to_string(typ: Any) -> str:
+def _type_to_ref(id: str, typ: Any) -> str:
     if get_origin(typ) is Union:
-        return " or ".join(
-            [_type_to_string(inner_type) for inner_type in get_args(typ)]
-        )
+        return "\n".join([_type_to_ref(id, inner_type) for inner_type in get_args(typ)])
 
-    if isinstance(typ, list):
-        return f"[ {', '.join([_type_to_string(t) for t in typ])} ]"
+    if _a_list(typ):
+        return "\n".join([_type_to_ref(id, t) for t in typ])
 
     if hasattr(typ, "items"):
-        return f"{_type_to_string(typ.items)}[]"
+        return _type_to_ref(id, typ.items)
 
-    if isinstance(typ, str):
-        return typ
+    if _an_enum(typ):
+        type_str = _to_camel_case(id)
+    elif isinstance(typ, str):
+        type_str = typ
+    elif hasattr(typ, "__name__"):
+        type_str = typ.__name__
+    else:
+        type_str = str(typ)
 
-    if hasattr(typ, "symbols"):
-        return f"Enum: [ {', '.join([str(s.split('/')[-1]) for s in typ.symbols])} ]"
+    return (
+        f"{id} --> {get_uri_anchor(type_str)}"
+        if "#" in type_str
+        else f"' no need to add a {id} --> {type_str}"
+    )
 
-    if hasattr(typ, "__name__"):
-        return typ.__name__
 
-    return str(typ)
+def _type_to_string(id: str, typ: Any) -> str:
+    if get_origin(typ) is Union:
+        return " | ".join(
+            [_type_to_string(id, inner_type) for inner_type in get_args(typ)]
+        )
+
+    if _a_list(typ):
+        return " | ".join([_type_to_string(id, t) for t in typ])
+
+    if hasattr(typ, "items"):
+        return f"{_type_to_string(id, typ.items)}[]"
+
+    if _an_enum(typ):
+        type_str = _to_camel_case(id)
+    elif isinstance(typ, str):
+        type_str = typ
+    elif hasattr(typ, "__name__"):
+        type_str = typ.__name__
+    else:
+        type_str = str(typ)
+
+    return get_uri_anchor(type_str)
 
 
 def _not_single_item_list(value: Any) -> bool:
@@ -97,18 +153,36 @@ def _to_mapping(functions: List[Any]) -> Mapping[str, Any]:
     mapping: Mapping[str, Any] = {}
 
     for function in functions:
-        mapping[function.__name__[1:]] = function
+        name = function.__name__
+        mapping[name[1:] if name.startswith("_") else name] = function
 
     return mapping
 
 
 _jinja_environment = Environment(loader=PackageLoader(package_name="cwl2puml"))
+
+for key, value in _to_mapping(
+    [
+        _type_to_ref,
+        _type_to_string,
+    ]
+).items():
+    _jinja_environment.globals[key] = value
+
 _jinja_environment.filters.update(
     _to_mapping(
-        [_to_puml_name, _type_to_string, _get_value_from_str_or_single_item_list]
+        [
+            get_uri_anchor,
+            get_uri_last_part,
+            _to_camel_case,
+            _to_puml_name,
+            _get_value_from_str_or_single_item_list,
+        ]
     )
 )
-_jinja_environment.tests.update(_to_mapping([_not_single_item_list]))
+_jinja_environment.tests.update(
+    _to_mapping([_an_enum, _a_list, _a_string, _not_single_item_list])
+)
 
 # END
 

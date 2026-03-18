@@ -4,18 +4,37 @@
  '/
 @startuml
 
+{% macro serialize_enum(id, typ) -%}
+    +enum {{ id | to_camel_case }} {
+{% for symbol in typ.symbols %}
+        {{ symbol | get_uri_last_part }}
+        {% endfor %}
+    }
+{%- endmacro %}
+
+{% macro serialize_record(id, typ) -%}
+    +class {{ id }} {
+{% for field in typ.fields %}
+        +{{ field.name | get_uri_last_part }}: {{ type_to_string(field.name, field.type_) }}
+{% endfor %}
+    }
+{% for field in typ.fields %}
+    {{ type_to_ref(id, field.type_) }}
+{% endfor %}
+{%- endmacro %}
+
 {% macro serialize_process(process) -%}
-    +class "{{ process.id }}" as {{ process.class_ }}_{{ process.id | to_puml_name }} extends {{ process.class_ }} {
+    {% set process_id = process.class_ ~ '_' ~ process.id|to_puml_name %}
+
+    +class "{{ process.id }}" as {{ process_id }} extends {{ process.class_ }} {
         __ Inputs __
         {% for input in process.inputs %}
-            {% if not input.type_.symbols %}
-        + {{ input.id }}: {{ input.type_ | type_to_string }}{% if input.default %} = {{ input.default }}{% endif %}
-            {% endif %}
+        + {{ input.id }}: {{ type_to_string(input.id, input.type_) }}{% if input.default %} = {{ input.default }}{% endif %}
         {% endfor %}
 
         __ Outputs __
         {% for output in process.outputs %}
-        + {{ output.id }}: {{ output.type_ | type_to_string }}
+        + {{ output.id }}: {{ type_to_string(output.id, output.type_) }}
         {% endfor %}
 
         {% if process.steps %}
@@ -25,21 +44,25 @@
             {% endfor %}
         {% endif %}
     }
-
     {% for input in process.inputs %}
-        {% if input.type_.symbols %}
-    enum "{{ input.id }}" as {{ input.id | to_puml_name }} {
-            {% for symbol in input.type_.symbols %}
-        {{ symbol.split('/')[-1] }}
+        {% if input.type_ is a_list %}
+            {% for typ in input.type_ %}
+                {% if typ is an_enum %}
+        {{ serialize_enum(input.id, typ) }}
+        {{ process_id }} -> {{ input.id | to_camel_case }}
+                {% endif %}
             {% endfor %}
-    }
-    {{ process.class_ }}_{{ process.id | to_puml_name }} -> {{ input.id | to_puml_name }}
+        {% elif input.type_ is an_enum %}
+        {{ serialize_enum(input.id, input.type_) }}
+        {{ process_id }} -> {{ input.id | to_camel_case }}
         {% endif %}
+
+        {{ type_to_ref(process_id, input.type_) }}
     {% endfor %}
 {%- endmacro %}
 
 {% macro serialize_workflow(workflow) -%}
-package "{% if workflow.label %}{{ workflow.label }}{% elif workflow.doc %}{{ workflow.doc }}{% else %}{{ workflow.id }}{% endif %}" {
+package "{% if workflow.label %}{{ workflow.label }}{% else %}{{ workflow.id }}{% endif %}" {
 
     {{ serialize_process(workflow) }}
 
@@ -87,5 +110,24 @@ package "{% if workflow.label %}{{ workflow.label }}{% elif workflow.doc %}{{ wo
 
 {% set process = index.get(workflow_id) %}
 {% if 'Workflow' == process.class_ %}
+    {% if process.requirements %}
+        {% for requirement in process.requirements %}
+            {% if requirement.class_ and "SchemaDefRequirement" == requirement.class_ %}package "Schemas" {
+                {% for declared_type in requirement.types %}
+                    {% set short_name = declared_type.name | get_uri_anchor %}
+
+                    {% if "enum" == declared_type.type_ %}
+                        {{ serialize_enum(short_name, declared_type) }}
+                    {% elif "record" == declared_type.type_ %}
+                        {{ serialize_record(short_name, declared_type) }}
+                    {% else %}
+                ' {{ declared_type.__dict__ }}
+                    {% endif %}
+                {% endfor %}
+            }
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     {{ serialize_workflow(process) }}
 {% endif %}
