@@ -79,17 +79,23 @@ class TestHelpers(TestCase):
     def test_to_puml_name(self):
         self.assertEqual(cwl2puml._to_puml_name("a-b/c"), "a_b_c")
 
+    def test_jinja_environment_registers_get_uri_anchor_filter(self):
+        self.assertIs(
+            cwl2puml._jinja_environment.filters["get_uri_anchor"],
+            cwl2puml.get_uri_anchor,
+        )
+
     def test_type_to_string_with_union(self):
-        rendered = cwl2puml._type_to_string(Union[str, int])
-        self.assertEqual(rendered, "str or int")
+        rendered = cwl2puml._type_to_string("test_id", Union[str, int])
+        self.assertEqual(rendered, "str | int")
 
     def test_type_to_string_with_list(self):
-        rendered = cwl2puml._type_to_string(["File", "Directory"])
-        self.assertEqual(rendered, "[ File, Directory ]")
+        rendered = cwl2puml._type_to_string("test_id", ["File", "Directory"])
+        self.assertEqual(rendered, "File | Directory")
 
     def test_type_to_string_with_array_like_object(self):
         array_like = type("ArrayLike", (), {"items": "File"})()
-        self.assertEqual(cwl2puml._type_to_string(array_like), "File[]")
+        self.assertEqual(cwl2puml._type_to_string("test_id", array_like), "File[]")
 
     def test_type_to_string_with_enum_like_object(self):
         enum_like = type(
@@ -97,13 +103,13 @@ class TestHelpers(TestCase):
             (),
             {"symbols": ["https://example.test/schema#A", "B"]},
         )()
-        self.assertEqual(cwl2puml._type_to_string(enum_like), "Enum: [ schema#A, B ]")
+        self.assertEqual(cwl2puml._type_to_string("test_id", enum_like), "TestId")
 
     def test_type_to_string_with_named_type(self):
-        self.assertEqual(cwl2puml._type_to_string(int), "int")
+        self.assertEqual(cwl2puml._type_to_string("test_id", int), "int")
 
     def test_type_to_string_with_fallback_object(self):
-        rendered = cwl2puml._type_to_string(object())
+        rendered = cwl2puml._type_to_string("test_id", object())
         self.assertIn("object object", rendered)
 
     def test_not_single_item_list(self):
