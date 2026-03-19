@@ -13,7 +13,7 @@
 {%- endmacro %}
 
 {% macro serialize_record(id, typ) -%}
-    +class {{ id }} {
+    +record {{ id }} {
 {% for field in typ.fields %}
         +{{ field.name | get_uri_last_part }}: {{ type_to_string(field.name, field.type_) }}
 {% endfor %}
