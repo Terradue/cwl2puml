@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cwl2ogc import BaseCWLtypes2OGCConverter
 from cwl_loader.utils import assert_connected_graph, assert_process_contained, to_index
 from cwl_utils.parser import Process
 from datetime import datetime
@@ -21,6 +22,7 @@ from jinja2 import Environment, PackageLoader
 
 from typing import Any, List, Mapping, Union, TextIO, get_args, get_origin
 
+import json
 import re
 import time
 
@@ -67,6 +69,10 @@ class DiagramType(Enum):
     """Represents the PlantUML `sequence' diagram"""
     STATE = auto()
     """Represents the PlantUML `state' diagram"""
+    OGC_PROCESSES_INPUTS = auto()
+    """Represents the PlantUML `JSON' diagram for OGC API Processes - Process description inputs"""
+    OGC_PROCESSES_OUTPUTS = auto()
+    """Represents the PlantUML `JSON' diagram for OGC API Processes - Process description outputs"""
 
 
 # START custom built-in functions to simplify the CWL rendering
@@ -149,6 +155,18 @@ def _get_version() -> str:
         return "N/A"
 
 
+def _dump_json(data: Mapping[str, Any]):
+    return json.dumps(data, indent=2)
+
+
+def get_ogc_inputs(process: Process):
+    return _dump_json(BaseCWLtypes2OGCConverter(process).get_inputs())
+
+
+def get_ogc_outputs(process: Process):
+    return _dump_json(BaseCWLtypes2OGCConverter(process).get_outputs())
+
+
 def _to_mapping(functions: List[Any]) -> Mapping[str, Any]:
     mapping: Mapping[str, Any] = {}
 
@@ -162,10 +180,7 @@ def _to_mapping(functions: List[Any]) -> Mapping[str, Any]:
 _jinja_environment = Environment(loader=PackageLoader(package_name="cwl2puml"))
 
 for key, value in _to_mapping(
-    [
-        _type_to_ref,
-        _type_to_string,
-    ]
+    [_type_to_ref, _type_to_string, get_ogc_inputs, get_ogc_outputs]
 ).items():
     _jinja_environment.globals[key] = value
 
