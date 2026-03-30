@@ -180,12 +180,7 @@ def _to_mapping(functions: List[Any]) -> Mapping[str, Any]:
 _jinja_environment = Environment(loader=PackageLoader(package_name="cwl2puml"))
 
 for key, value in _to_mapping(
-    [
-        _type_to_ref,
-        _type_to_string,
-        get_ogc_inputs,
-        get_ogc_outputs
-    ]
+    [_type_to_ref, _type_to_string, get_ogc_inputs, get_ogc_outputs]
 ).items():
     _jinja_environment.globals[key] = value
 
