@@ -28,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
   "cwl-loader==0.15.0",
-  "cwltool==3.1.20260108082145",
+  "cwltool==3.1.20260315121657",
   "cwl-utils==0.41",
   "click==8.3.2",
   "Jinja2==3.1.6",
