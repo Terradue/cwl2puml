@@ -34,7 +34,7 @@ dependencies = [
   "Jinja2==3.1.6",
   "loguru==0.7.3",
   "plantuml==0.3.0",
-  "cwl2ogc==0.13.0"
+  "cwl2ogc==0.14.0"
 ]
 
 [project.scripts]
