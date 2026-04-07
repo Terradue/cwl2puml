@@ -34,7 +34,7 @@ dependencies = [
   "Jinja2==3.1.6",
   "loguru==0.7.3",
   "plantuml==0.3.0",
-  "cwl2ogc==0.13.0"
+  "cwl2ogc==0.14.0"
 ]
 
 [project.scripts]
@@ -78,16 +78,8 @@ exclude_lines = [
 skip-install = false
 
 dependencies = [
-  "cwl-loader==0.15.0",
-  "cwltool==3.1.20260315121657",
-  "cwl-utils==0.41",
-  "click==8.3.2",
-  "Jinja2==3.1.6",
-  "loguru==0.7.3",
-  "plantuml==0.3.0",
   "pytest==9.0.2",
   "pytest-cov==7.0.0",
-  "ruff==0.14.6",
 ]
 
 [tool.hatch.envs.test.scripts]
