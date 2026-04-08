@@ -27,7 +27,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "cwl-loader==0.15.0",
+  "cwl-loader==0.16.0",
   "cwltool==3.1.20260315121657",
   "cwl-utils==0.41",
   "click==8.3.2",
