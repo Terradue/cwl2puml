@@ -3,6 +3,7 @@
 __pycache__
 /.pytest_cache/
 .settings
+.task
 .venv
 docs/api
 .ruff_cache/
