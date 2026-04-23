@@ -22,6 +22,7 @@ from importlib.metadata import PackageNotFoundError
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from typing import List, Union
 from unittest import TestCase
 from unittest.mock import patch
@@ -168,6 +169,119 @@ class TestHelpers(TestCase):
         )
         assert_connected_graph.assert_called_once_with(fake_document)
         self.assertEqual(output.getvalue(), "main|1.2.3")
+
+    def test_sequence_diagram_qualifies_reused_subworkflow_aliases(self):
+        command = SimpleNamespace(id="tool", class_="CommandLineTool")
+        shared_workflow = SimpleNamespace(
+            id="shared",
+            class_="Workflow",
+            label=None,
+            inputs=[SimpleNamespace(id="sub_in")],
+            outputs=[],
+            steps=[
+                SimpleNamespace(
+                    id="run-tool",
+                    run="#tool",
+                    in_=[
+                        SimpleNamespace(
+                            id="leaf_in",
+                            source="sub_in",
+                            pickValue=None,
+                        )
+                    ],
+                    out=["leaf_out"],
+                    when=None,
+                    scatter=None,
+                    scatterMethod=None,
+                )
+            ],
+        )
+        root_workflow = SimpleNamespace(
+            id="main",
+            class_="Workflow",
+            label=None,
+            inputs=[SimpleNamespace(id="root_input")],
+            outputs=[],
+            steps=[
+                SimpleNamespace(
+                    id="call-a",
+                    run="#shared",
+                    in_=[
+                        SimpleNamespace(
+                            id="sub_in",
+                            source="root_input",
+                            pickValue=None,
+                        )
+                    ],
+                    out=[],
+                    when=None,
+                    scatter=None,
+                    scatterMethod=None,
+                ),
+                SimpleNamespace(
+                    id="call-b",
+                    run="#shared",
+                    in_=[
+                        SimpleNamespace(
+                            id="sub_in",
+                            source="root_input",
+                            pickValue=None,
+                        )
+                    ],
+                    out=[],
+                    when=None,
+                    scatter=None,
+                    scatterMethod=None,
+                ),
+            ],
+        )
+        output = StringIO()
+
+        with (
+            patch("cwl2puml.assert_process_contained") as assert_process_contained,
+            patch("cwl2puml.assert_connected_graph") as assert_connected_graph,
+            patch(
+                "cwl2puml.to_index",
+                return_value={
+                    "main": root_workflow,
+                    "shared": shared_workflow,
+                    "tool": command,
+                },
+            ),
+        ):
+            cwl2puml.to_puml(
+                cwl_document=[root_workflow, shared_workflow, command],
+                workflow_id="main",
+                diagram_type=DiagramType.SEQUENCE,
+                output_stream=output,
+            )
+
+        assert_process_contained.assert_called_once_with(
+            process=[root_workflow, shared_workflow, command], process_id="main"
+        )
+        assert_connected_graph.assert_called_once_with(
+            [root_workflow, shared_workflow, command]
+        )
+
+        rendered = output.getvalue()
+        self.assertIn(
+            'control "step: call-a\\nWorkflow: shared" as main_or__call_a_or',
+            rendered,
+        )
+        self.assertIn(
+            'control "step: call-b\\nWorkflow: shared" as main_or__call_b_or',
+            rendered,
+        )
+        self.assertIn(
+            'participant "step: run-tool\\nCommandLineTool: tool" as '
+            "main_or__call_a_or__run_tool",
+            rendered,
+        )
+        self.assertIn(
+            'participant "step: run-tool\\nCommandLineTool: tool" as '
+            "main_or__call_b_or__run_tool",
+            rendered,
+        )
 
 
 class TestCli(TestCase):
