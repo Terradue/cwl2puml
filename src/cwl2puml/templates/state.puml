@@ -11,10 +11,13 @@ hide empty description
                 {% if 'Workflow' == process.class_ %}
 state "{{ workflow.id }}" as {{ workflow.id | to_puml_name }} {
             {% for input in process.inputs %}
+    
     state "{{ input.id }}" as {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }} <<entryPoint>>
             {% endfor %}
             {% for input in step.in_  %}
+                {% if input.source %}
     {% if '/' not in input.source %}{{ workflow.id | to_puml_name }}_{% endif %}{{ input.source | to_puml_name }} --> {{ process.id | to_puml_name }}_{{ input.id | to_puml_name }}
+                {% endif %}
         {% endfor %}
 
         {{ serialize_workflow(process) }}

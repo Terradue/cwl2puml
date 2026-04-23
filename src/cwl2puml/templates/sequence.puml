@@ -5,66 +5,68 @@
 @startuml
 autonumber "<b>[000]"
 
-{% macro serialize_workflow(workflow) -%}
+{% macro serialize_workflow(workflow, workflow_alias) -%}
 {% for step in workflow.steps %}
 {% if step.when %}alt#LightGreen {{ step.when }}{% endif %}
 {% if step.scatter %}loop {{ step.scatterMethod }} {{ step.scatter }}{% endif %}
         {% set process = index.get(step.run[1:]) %}
+        {% set step_alias = workflow_alias ~ '__' ~ (step.id | to_puml_name) %}
         {% if 'Workflow' == process.class_ %}
+        {% set nested_workflow_alias = step_alias ~ '_or' %}
 box "{% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %}"
-        control "step: {{ step.id }}\nWorkflow: {{ process.id }}" as {{ process.id | to_puml_name }}_or
-        activate {{ process.id | to_puml_name }}_or
+        control "step: {{ step.id }}\nWorkflow: {{ process.id }}" as {{ nested_workflow_alias }}
+        activate {{ nested_workflow_alias }}
 
                 {% for input in step.in_  %}
-        {{ workflow.id | to_puml_name }}_or -> {{ process.id | to_puml_name }}_or : ""{{ input.id }}"" (from ""{{ input.source }}"")
+        {{ workflow_alias }} -> {{ nested_workflow_alias }} : ""{{ input.id }}"" (from ""{{ input.source }}"")
                 {% endfor %}
 
-        {{ serialize_workflow(process) }}
+        {{ serialize_workflow(process, nested_workflow_alias) }}
 
                 {% for output in process.outputs %}
                         {% if output.outputSource is not_single_item_list %}
         alt {{ output.pickValue }}
                         {% for output_source in output.outputSource %}
-        {{ workflow.id | to_puml_name }}_or <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output_source }}"")
-        {% if not loop.last %}else{% endif %}
+        {{ workflow_alias }} <-- {{ nested_workflow_alias }} : ""{{ output.id }}"" (from ""{{ output_source }}"")
+{% if not loop.last %}else{% endif %}
                         {% endfor %}
         end
                         {% else %}
-        {{ workflow.id | to_puml_name }}_or <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output.outputSource | get_value_from_str_or_single_item_list }}"")
+        {{ workflow_alias }} <-- {{ nested_workflow_alias }} : ""{{ output.id }}"" (from ""{{ output.outputSource | get_value_from_str_or_single_item_list }}"")
                         {% endif %}
                 {% endfor %}
 
-        deactivate {{ process.id | to_puml_name }}_or
+        deactivate {{ nested_workflow_alias }}
 end box
         {% else %}
-participant "step: {{ step.id }}\n{{ process.class_ }}: {{ process.id }}" as {{ step.id | to_puml_name }}
-activate {{ step.id | to_puml_name }}
+participant "step: {{ step.id }}\n{{ process.class_ }}: {{ process.id }}" as {{ step_alias }}
+activate {{ step_alias }}
 
                 {% for input in step.in_  %}
                         {% if input.source is not_single_item_list %}
 alt {{ input.pickValue }}
                                 {% for input_source in input.source %}
-{{ workflow.id | to_puml_name }}_or -> {{ step.id | to_puml_name }} : ""{{ input.id }}"" (from ""{{ input_source }}"")
+{{ workflow_alias }} -> {{ step_alias }} : ""{{ input.id }}"" (from ""{{ input_source }}"")
 {% if not loop.last %}else{% endif %}
                                 {% endfor %}
 end
                         {% else %}
-{{ workflow.id | to_puml_name }}_or -> {{ step.id | to_puml_name }} : ""{{ input.id }}"" (from ""{{ input.source | get_value_from_str_or_single_item_list }}"")
+{{ workflow_alias }} -> {{ step_alias }} : ""{{ input.id }}"" (from ""{{ input.source | get_value_from_str_or_single_item_list }}"")
                         {% endif %}
                 {% endfor %}
 
-{{ step.id | to_puml_name }} -> {{ step.id | to_puml_name }} : Compute
+{{ step_alias }} -> {{ step_alias }} : Compute
 
                 {% for output in step.out  %}
-{{ workflow.id | to_puml_name }}_or <-- {{ step.id | to_puml_name }} : ""{{ output }}""
+{{ workflow_alias }} <-- {{ step_alias }} : ""{{ output }}""
                 {% endfor %}
 
-deactivate {{ step.id | to_puml_name }}
+deactivate {{ step_alias }}
         {% endif %}
 {% if step.scatter %}end{% endif %}
 {% if step.when %}
 else condition not satisfied
-        {{ workflow.id | to_puml_name }}_or -> {{ workflow.id | to_puml_name }}_or : ""{{step.run}}"" execution skipped
+        {{ workflow_alias }} -> {{ workflow_alias }} : ""{{step.run}}"" execution skipped
 end
 {% endif %}
 {% endfor %}
@@ -76,29 +78,30 @@ activate wfrunner
 {% set process = index.get(workflow_id) %}
 {% if 'Workflow' == process.class_ %}
 == {% if process.label %}{{ process.label }}{% else %}{{ process.id }}{% endif %} ==
-control "{{ process.id }}" as {{ process.id | to_puml_name }}_or
-activate {{ process.id | to_puml_name }}_or
+{% set root_workflow_alias = process.id | to_puml_name ~ '_or' %}
+control "{{ process.id }}" as {{ root_workflow_alias }}
+activate {{ root_workflow_alias }}
 
         {% for input in process.inputs %}
-wfrunner -> {{ process.id | to_puml_name }}_or : ""{{ input.id }}""
+wfrunner -> {{ root_workflow_alias }} : ""{{ input.id }}""
         {% endfor %}
 
-{{ serialize_workflow(process) }}
+{{ serialize_workflow(process, root_workflow_alias) }}
 
         {% for output in process.outputs %}
                 {% if output.outputSource is not_single_item_list %}
 alt {{ output.pickValue }}
                         {% for output_source in output.outputSource %}
-wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output_source }}"")
+wfrunner <-- {{ root_workflow_alias }} : ""{{ output.id }}"" (from ""{{ output_source }}"")
 {% if not loop.last %}else{% endif %}
                         {% endfor %}
 end
                 {% else %}
-wfrunner <-- {{ process.id | to_puml_name }}_or : ""{{ output.id }}"" (from ""{{ output.outputSource | get_value_from_str_or_single_item_list }}"")
+wfrunner <-- {{ root_workflow_alias }} : ""{{ output.id }}"" (from ""{{ output.outputSource | get_value_from_str_or_single_item_list }}"")
                 {% endif %}
         {% endfor %}
 
-deactivate {{ process.id | to_puml_name }}_or
+deactivate {{ root_workflow_alias }}
 {% endif %}
 
 deactivate wfrunner

@@ -14,20 +14,12 @@
 
 version: '3'
 
+includes:
+  quality: https://raw.githubusercontent.com/Terradue/taskfile-utils/refs/heads/main/quality.yaml
+
 tasks:
 
- 
-  test:
-    desc: Run tests
+  default:
     cmds:
-    - hatch run test:test-show-setup
-
-  check:
-    desc: Run code quality checks
-    cmds:
-    - hatch run dev:check
-
-  lint:
-    desc: Run linters
-    cmds:
-    - hatch run dev:lint
+    - task: quality:test
+    - task: quality:check
