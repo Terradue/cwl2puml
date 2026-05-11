@@ -25,6 +25,7 @@ end group
 
 {% set process = index.get(workflow_id) %}
 {% if 'Workflow' == process.class_ %}
+group {{ process.id }}
 
 split
     {% for input in process.inputs %}
@@ -40,6 +41,7 @@ split
 {% if loop.last %}end {% endif %}split{% if not loop.last %} again{% endif %}
     {% endfor %}
 
+end group
 {% endif %}
 
 stop
