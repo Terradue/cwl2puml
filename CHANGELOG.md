@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.44.0] - 2026-06-16
+
+### Changed
+
+- Bumped `cwl-loader` from `0.16.0` to `0.20.0`.
+- Bumped `click` from `8.3.2` to `8.4.1`.
+- Bumped `cwl2ogc` from `0.16.0` to `0.18.0`.
+
 ## [0.43.0] - 2026-05-11
 
 ### Added
